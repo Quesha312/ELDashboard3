@@ -454,7 +454,7 @@
       return;
     }
 
-    if (t.classList && t.classList.contains("unit-title")) {
+        if (t.classList && t.classList.contains("unit-title")) {
       var ug = t.parentElement;
       if (ug && ug.dataset.unit !== undefined) {
         state.unit = parseInt(ug.dataset.unit, 10);
@@ -464,6 +464,10 @@
       } else if (ug && ug.dataset.svunit !== undefined) {
         state.sUnit = parseInt(ug.dataset.svunit, 10);
         state.sWeek = 0;
+        render();
+      } else if (ug && ug.dataset.cunit !== undefined) {
+        state.cUnit = parseInt(ug.dataset.cunit, 10);
+        state.cSession = -1;
         render();
       }
       return;
@@ -482,6 +486,11 @@
       return;
     }
 
+    if (t.id === "conn-back") { state.cSession = -1; render(); return; }
+    if (t.id === "dur-toggle") {
+      var durs = [30,45,60,90], di = durs.indexOf(state.cDur);
+      state.cDur = durs[(di+1)%4]; render(); return;
+    }
     if (t.classList && t.classList.contains("tab-btn")) {
       state.tab = parseInt(t.dataset.tab, 10);
       render();
