@@ -17,9 +17,9 @@
 
   var UNITS = window.ELL_UNITS;
   var CONNECT = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
-  var TABS  = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];<!DOCTYPE html>
+  var TABS  = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];
 
-  varCONN_PO = ["",
+  var CONN_PO = ["",
     "[S1 \u2014 Unit Opener] Play theme video + image walk. Pre-teach 2\u20133 unit theme words. Frame: \u2018The Big Idea is ___.\u2019 Connect to students\u2019 own experiences with the theme.",
     "[S2 \u2014 Before You Read] Build background with photos/realia before text. Model reading strategy with a short mentor text first. Add strategy name to anchor chart.",
     "[S3 \u2014 Vocabulary] Visual vocab cards: word + image + student-friendly definition. Word sort. Sentence frame: \u2018A ___ is ___.\u2019 Allow home-language labels on back of cards.",
@@ -454,7 +454,7 @@
       return;
     }
 
-        if (t.classList && t.classList.contains("unit-title")) {
+    if (t.classList && t.classList.contains("unit-title")) {
       var ug = t.parentElement;
       if (ug && ug.dataset.unit !== undefined) {
         state.unit = parseInt(ug.dataset.unit, 10);
@@ -464,10 +464,6 @@
       } else if (ug && ug.dataset.svunit !== undefined) {
         state.sUnit = parseInt(ug.dataset.svunit, 10);
         state.sWeek = 0;
-        render();
-      } else if (ug && ug.dataset.cunit !== undefined) {
-        state.cUnit = parseInt(ug.dataset.cunit, 10);
-        state.cSession = -1;
         render();
       }
       return;
@@ -486,11 +482,6 @@
       return;
     }
 
-    if (t.id === "conn-back") { state.cSession = -1; render(); return; }
-    if (t.id === "dur-toggle") {
-      var durs = [30,45,60,90], di = durs.indexOf(state.cDur);
-      state.cDur = durs[(di+1)%4]; render(); return;
-    }
     if (t.classList && t.classList.contains("tab-btn")) {
       state.tab = parseInt(t.dataset.tab, 10);
       render();
