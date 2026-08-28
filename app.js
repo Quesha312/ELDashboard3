@@ -17,7 +17,47 @@
 
   var UNITS = window.ELL_UNITS;
   var CONNECT = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
-  
+  var TABS  = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ms. Crosby ELL Dashboard</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+<h1>Ms. Crosby ELL Dashboard</h1>
+<div class="header-controls">
+<button id="mode-toggle">Push-In</button>
+<button id="print-btn">Print</button>
+</div>
+</header>
+<div id="app">
+<div id="sidebar"></div>
+<div id="main">
+<div id="tabs"></div>
+<div id="lesson-content"></div>
+</div>
+</div>
+<script src="savvas_u1.js"></script>
+<script src="savvas_u2.js"></script>
+<script src="savvas_u3.js"></script>
+<script src="savvas_u4.js"></script>
+<script src="savvas_u5.js"></script>
+<script src="connect_u1.js"></script>
+<script src="connect_u2.js"></script>
+<script src="connect_u3.js"></script>
+<script src="connect_u4.js"></script>
+<script src="connect_u5.js"></script>
+<script src="connect_u6.js"></script>
+<script src="connect_u7.js"></script>
+<script src="connect_u8.js"></script>
+<script src="tracker.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
+
 
   var CONN_PO = ["",
     "[S1 \u2014 Unit Opener] Play theme video + image walk. Pre-teach 2\u20133 unit theme words. Frame: \u2018The Big Idea is ___.\u2019 Connect to students\u2019 own experiences with the theme.",
