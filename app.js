@@ -17,7 +17,7 @@
 
   var UNITS = window.ELL_UNITS;
   var CONNECT = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
-  var TABS  = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];
+  
 
   var CONN_PO = ["",
     "[S1 \u2014 Unit Opener] Play theme video + image walk. Pre-teach 2\u20133 unit theme words. Frame: \u2018The Big Idea is ___.\u2019 Connect to students\u2019 own experiences with the theme.",
