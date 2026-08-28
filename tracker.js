@@ -71,7 +71,6 @@
     {id:22,title:"The Evening Bike Ride",
      passage:"The bright sun started to set behind the hills. Ryan put on his black helmet and rode his red bicycle down the street. The cool night air felt nice on his face as he sped up. He enjoyed the quiet evening, noticing the stars beginning to appear. Riding his bike at sunset made him feel free and peaceful.",
      dok:[{lvl:1,q:"What safety gear did Ryan wear? When did he ride his bike?",a:"A black helmet / In the evening at sunset"},{lvl:2,q:"Why did Ryan enjoy the ride? What did he notice in the sky?",a:"Cool air, quiet, felt free / Stars beginning to appear"},{lvl:3,q:"What does Ryan's feeling of freedom show about his love for biking?",a:"Biking gives him a sense of independence and peace — it is an emotional outlet"},{lvl:4,q:"Compare riding a bike in the evening to riding during the day.",a:"Open response — sensory differences, safety, mood, visibility, experience"}]}
-    {id:3,title:"Fresh Apples",wc:36},{id:4,title:"The Little Frog",wc:35},
     
   ];
 
