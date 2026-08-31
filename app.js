@@ -1,9 +1,9 @@
+```javascript
 // app.js — ELL Teacher Dashboard
 (function () {
   "use strict";
 
   // — crash-guard ——————————————————————————————————————————————
-  var CONNECT = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
   if (!window.SAVVAS_UNITS || window.SAVVAS_UNITS.length < 5) {
     document.getElementById("app").innerHTML =
       "<div class=\"error-banner\">" +
@@ -12,20 +12,20 @@
       "</div>";
     return;
   }
-  var SAVVAS_OK = !!(window.SAVVAS_UNITS && window.SAVVAS_UNITS.length >= 5);
-  var SAVVAS = SAVVAS_OK ? window.SAVVAS_UNITS : [];
 
-  var UNITS = window.ELL_UNITS;
-  var CONNECT = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
-  var TABS  = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];
+  var SAVVAS_OK = !!(window.SAVVAS_UNITS && window.SAVVAS_UNITS.length >= 5);
+  var SAVVAS   = SAVVAS_OK ? window.SAVVAS_UNITS : [];
+  var UNITS    = window.ELL_UNITS;
+  var CONNECT  = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
+  var TABS     = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];
 
   var CONN_PO = ["",
     "[S1 \u2014 Unit Opener] Play theme video + image walk. Pre-teach 2\u20133 unit theme words. Frame: \u2018The Big Idea is ___.\u2019 Connect to students\u2019 own experiences with the theme.",
     "[S2 \u2014 Before You Read] Build background with photos/realia before text. Model reading strategy with a short mentor text first. Add strategy name to anchor chart.",
-    "[S3 \u2014 Vocabulary] Visual vocab cards: word + image + student-friendly definition. Word sort. Sentence frame: \u2018A ___ is ___.\u2019 Allow home-language labels on back of cards.",
-    "[S4 \u2014 Phonics] Use letter tiles or word sort cards alongside TE tutorial. Model each phonics pattern twice before students practice. Connect to words already in students\u2019 vocabulary.",
-    "[S5 \u2014 First Read] Play audio while students finger-track. Pause every 2 pages for yes/no comprehension check. Pre-teach idioms and figurative language. Use visual story map.",
-    "[S6 \u2014 Reread] Focus on one language feature: target grammar pattern, academic phrase, or key sentence structure. Cloze activity using text sentences. Choral reading with expression.",
+    "[S3 \u2014 Vocabulary] Visual vocab cards with images, native language labels if possible. Teach 4\u20135 key words with picture support. Act out words when possible. Add to personal vocab journal.",
+    "[S4 \u2014 Phonics] Use picture-sound cards for each pattern. Mirror-clap patterns together. Word sort with picture support. Add example words to personal phonics chart.",
+    "[S5 \u2014 Reading (First Read)] Picture walk entire text before reading. Use audio if available. Pause after each page for a quick comprehension check. Teacher takes running record if possible.",
+    "[S6 \u2014 Reread & Review] Chunked re-reading with sticky notes. Model fluency: read 1\u20132 sentences first. Grammar/vocabulary feature: target grammar pattern, academic phrase, or key sentence structure. Cloze activity using text sentences. Choral reading with expression.",
     "[S7 \u2014 After You Read] Graphic organizer scaffold before discussion. Sentence frames: \u2018I think ___ because ___.\u2019 Partner EL student with stronger reader. Comprehension questions before written response.",
     "[S8 \u2014 Oral Language] I say / We say / You say gradual release. Printed sentence frames for oral target. Record students\u2019 oral responses for self-assessment if possible.",
     "[S9 \u2014 Grammar 1] Visual anchor chart with color-coded examples from the reading. Sort sentences (correct/incorrect). Sentence transformation practice. Extra rounds beyond what class does.",
@@ -33,17 +33,20 @@
     "[S11 \u2014 Language Arts Text] Pre-read with students if possible. Text structure walk. Text-to-text connection to anchor text. Language focus alongside content reading.",
     "[S12 \u2014 Writing Tools] Analyze mentor text together. Partially completed graphic organizer. Isolate one writing tool to practice before applying to draft.",
     "[S13 \u2014 Science] Pre-teach science vocabulary with visuals and diagrams. Connect to Big Idea. Science vocabulary journal: word + drawing + sentence.",
-    "[S14 \u2014 Social Studies] Maps/photos for background building. Pre-teach domain vocabulary. Connect to students\u2019 own communities and cultural backgrounds.",
-    "[S15 \u2014 Mathematics] Preview math vocabulary visually. Use manipulatives alongside numbers. Connect math language to everyday contexts. Home language support as needed.",
-    "[S16 \u2014 Music] Play without text first. Display lyrics and sing slowly together. TPR (gestures) for key vocabulary in the song. Track text while singing.",
-    "[S17 \u2014 Art] Describe art images together using target vocabulary before reading. Student art response: create + label/describe using learned vocabulary.",
+    "[S14 \u2014 Social Studies] Pre-teach social studies vocabulary with maps, timelines, and images. Connect to students\u2019 home countries or cultures when relevant. Key concept graphic organizer alongside reading.",
+    "[S15 \u2014 Mathematics] Pre-teach math vocabulary with visuals and manipulatives. Number line and graphic supports throughout. Sentence frames for explaining math reasoning. Partner problem-solving before independent.",
+    "[S16 \u2014 Music] Preview song lyrics on paper before singing. Echo-sing with the teacher phrase by phrase. Point to words while singing to build print awareness. Connect song vocabulary to the unit theme.",
+    "[S17 \u2014 Art] Art vocabulary preview with visual examples. \u2018I see / I think / I wonder\u2019 observation routine before reading. Student art response: create + label/describe using learned vocabulary.",
     "[S18 \u2014 Writing Draft] Scaffolded template with sentence starters for writing type. Confer with 2\u20133 targeted questions per student. Home language drafting allowed \u2014 translate key ideas after.",
     "[S19 \u2014 Writing Publish] Peer review on ONE specific element. Simple editing checklist. Every student reads one sentence from published piece for class celebration.",
     "[S20 \u2014 Media] Focus questions displayed before viewing. Re-watch with pause points. Connect to Big Idea with sentence frame after viewing.",
     "[S21 \u2014 Assessment] Review vocabulary wall together. Pre-teach test-taking language. Extended time + read-aloud support. Post-test error analysis for vocabulary growth."
   ];
 
-  var state = { section:"connect", unit:0, week:0, tab:0, mode:"push-in", sUnit:0, sWeek:0, level:"below", cUnit:0, cSession:-1, cDur:30 };
+  var state = {
+    section:"connect", unit:0, week:0, tab:0, mode:"push-in",
+    sUnit:0, sWeek:0, level:"below", cUnit:0, cSession:-1, cDur:30
+  };
 
   // — localStorage ————————————————————————————————————————————
   function saveState() {
@@ -58,54 +61,40 @@
   function loadState() {
     try {
       var s = JSON.parse(localStorage.getItem("ell_nav") || "{}");
-      if (s.sec === "picture" || s.sec === "savvas") state.section = s.sec;
-      if (typeof s.u === "number" && s.u < UNITS.length) state.unit = s.u;
-      if (typeof s.w === "number" && UNITS[state.unit] && s.w < UNITS[state.unit].weeks.length) state.week = s.w;
-      if (typeof s.t === "number" && s.t < TABS.length) state.tab  = s.t;
-      if (s.m === "pull-out" || s.m === "push-in") state.mode = s.m;
+      if (s.sec === "picture" || s.sec === "connect" || s.sec === "savvas" || s.sec === "tracker") state.section = s.sec;
+      if (typeof s.u === "number") state.unit = s.u;
+      if (typeof s.w === "number") state.week = s.w;
+      if (typeof s.t === "number") state.tab  = s.t;
+      if (s.m === "push-in" || s.m === "pull-out") state.mode = s.m;
       if (SAVVAS_OK) {
-        if (typeof s.su === "number" && s.su < SAVVAS.length) state.sUnit = s.su;
-        if (typeof s.sw === "number" && SAVVAS[state.sUnit] && s.sw < SAVVAS[state.sUnit].weeks.length) state.sWeek = s.sw;
+        if (typeof s.su === "number" && s.su >= 0 && s.su < SAVVAS.length) state.sUnit = s.su;
+        if (typeof s.sw === "number" && s.sw >= 0 && s.sw < SAVVAS[state.sUnit].weeks.length) state.sWeek = s.sw;
         if (s.lvl === "below" || s.lvl === "on") state.level = s.lvl;
       } else if (state.section === "savvas") {
-        state.section = "picture";
+        state.section = "connect";
       }
     } catch (e) {}
   }
 
-  // — sidebar —————————————————————————————————————————————————
+  // — sidebar ——————————————————————————————————————————————————
   function renderSidebar() {
     var html = "<div class=\"section-switch\">" +
       "<button class=\"section-btn" + (state.section==="connect"?" active":"") + "\" data-section=\"connect\">Vista Connect 3</button>" +
       "<button class=\"section-btn" + (state.section==="savvas"?" active":"") + "\" data-section=\"savvas\">Savvas myView</button>" +
-      "<button class=\"section-btn" + (state.section==="tracker"?" active":"") + "\" data-section=\"tracker\"> Tracker</button>" +
+      "<button class=\"section-btn" + (state.section==="tracker"?" active":"") + "\" data-section=\"tracker\">\uD83D\uDCCA Tracker</button>" +
       "</div>";
 
     if (state.section === "connect") {
       for (var u = 0; u < CONNECT.length; u++) {
-        var active = (u === state.cUnit);
-        html += "<div class=\"unit-group" + (active ? " active" : "") + "\" data-cunit=\"" + u + "\" style='cursor:pointer'>";
+        var cu_active = (u === state.cUnit);
+        html += "<div class=\"unit-group" + (cu_active ? " active" : "") + "\" data-cunit=\"" + u + "\" style='cursor:pointer'>";
         html += "<div class='unit-title'><span class='u-num'>U" + (u+1) + "</span> " + CONNECT[u].title.replace(/^Unit \d+: /,"") + "</div></div>";
       }
-      document.getElementById("sidebar").innerHTML = html; return;
+      document.getElementById("sidebar").innerHTML = html;
+      return;
     }
-    if (false) { // placeholder — old picture-book block start
-      for (var u = 0; u < UNITS.length; u++) {
-        var active = (u === state.unit);
-        html += "<div class=\"unit-group" + (active ? " active" : "") + "\" data-unit=\"" + u + "\">";
-        html += "<div class=\"unit-title\">" + UNITS[u].title + "</div>";
-        if (active) {
-          html += "<ul class=\"week-list\">";
-          for (var w = 0; w < UNITS[u].weeks.length; w++) {
-            html += "<li class=\"week-item" + (w === state.week ? " active" : "") +
-                    "\" data-unit=\"" + u + "\" data-week=\"" + w + "\">" +
-                    "Week " + UNITS[u].weeks[w].w + ": " + UNITS[u].weeks[w].t + "</li>";
-          }
-          html += "</ul>";
-        }
-        html += "</div>";
-      }
-    } else if (SAVVAS_OK) {
+
+    if (SAVVAS_OK) {
       for (var su = 0; su < SAVVAS.length; su++) {
         var sActive = (su === state.sUnit);
         html += "<div class=\"unit-group" + (sActive ? " active" : "") + "\" data-svunit=\"" + su + "\">";
@@ -122,15 +111,21 @@
         html += "</div>";
       }
     } else {
-      html += "<p class=\"empty\" style=\"padding:1rem;\">Savvas unit files not loaded. Confirm savvas_u1.js–savvas_u5.js are included before app.js.</p>";
+      html += "<p class=\"empty\" style=\"padding:1rem;\">Savvas unit files not loaded. Confirm savvas_u1.js\u2013savvas_u5.js are included before app.js.</p>";
     }
+
     document.getElementById("sidebar").innerHTML = html;
   }
 
-  // — tabs ————————————————————————————————————————————————————
+  // — tabs ——————————————————————————————————————————————————————
   function renderTabs() {
     var tabsEl = document.getElementById("tabs");
-    if (state.section === "savvas" || state.section === "tracker") { tabsEl.innerHTML = ""; tabsEl.style.display = "none"; return; }
+    // FIX: hide tabs for connect AND tracker AND savvas (tabs only apply to picture-book section)
+    if (state.section === "savvas" || state.section === "tracker" || state.section === "connect") {
+      tabsEl.innerHTML = "";
+      tabsEl.style.display = "none";
+      return;
+    }
     tabsEl.style.display = "";
     var html = "";
     for (var i = 0; i < TABS.length; i++) {
@@ -140,7 +135,7 @@
     tabsEl.innerHTML = html;
   }
 
-  // — mode button ————————————————————————————————————————————
+  // — header buttons ————————————————————————————————————————
   function ensureHeaderButtons() {
     var controls = document.querySelector(".header-controls");
     if (!controls) return;
@@ -159,16 +154,17 @@
 
   function renderModeBtn() {
     ensureHeaderButtons();
-
     var sBtn = document.getElementById("section-toggle");
     if (sBtn) {
-      if (state.section === "connect") sBtn.textContent = "Switch \u2192 Savvas myView";
-      else if (state.section === "savvas") sBtn.textContent = "Switch \u2192 Vista Connect 3";
-      else sBtn.textContent = "View: Lessons";
+      if (state.section === "connect")      sBtn.textContent = "Switch \u2192 Savvas myView";
+      else if (state.section === "savvas")  sBtn.textContent = "Switch \u2192 Vista Connect 3";
+      else                                  sBtn.textContent = "View: Lessons";
     }
-    var lBtn2 = document.getElementById("level-toggle");
-    if (lBtn2) lBtn2.style.display = (state.section === "savvas") ? "" : "none";
-
+    var lBtn = document.getElementById("level-toggle");
+    if (lBtn) {
+      lBtn.style.display = (state.section === "savvas") ? "" : "none";
+      lBtn.textContent   = (state.level === "below") ? "Level: Below Level" : "Level: On Level";
+    }
     var btn = document.getElementById("mode-toggle");
     if (btn) {
       if (state.mode === "push-in") {
@@ -179,15 +175,9 @@
         btn.classList.add("pull-out");
       }
     }
-
-    var lBtn = document.getElementById("level-toggle");
-    if (lBtn) {
-      lBtn.style.display = (state.section === "savvas") ? "" : "none";
-      lBtn.textContent = (state.level === "below") ? "Level: Below Level" : "Level: On Level";
-    }
   }
 
-  // — content helpers ————————————————————————————————————————
+  // — content helpers ——————————————————————————————————————
   function stepList(arr) {
     if (!arr || !arr.length) return "<p class=\"empty\">No content available.</p>";
     var h = "<ol class=\"step-list\">";
@@ -232,13 +222,16 @@
     return h + "</tbody></table>";
   }
 
-  // — lesson panel ——————————————————————————————————————————
+  // — picture-book lesson panel ————————————————————————————
   function renderLesson() {
+    if (!UNITS || !UNITS.length) {
+      document.getElementById("lesson-content").innerHTML = "<p class=\"empty\">Picture-book unit files not loaded.</p>";
+      return;
+    }
     var L = UNITS[state.unit].weeks[state.week];
     var isPi = (state.mode === "push-in");
     var h = "";
 
-    // header
     h += "<div class=\"lesson-header\">";
     h += "<h2>" + L.t + "</h2>";
     h += "<div class=\"badges\">";
@@ -257,29 +250,22 @@
     }
 
     h += "<div class=\"tab-panel\">";
-
     if (state.tab === 0) {
       h += "<h3>Overview</h3><p class=\"ov-text\">" + (L.ov || "") + "</p>";
-
     } else if (state.tab === 1) {
       var idArr  = isPi ? L.id_pi : L.id_po;
       var idHead = isPi
         ? "I Do &mdash; <span class=\"mode-callout pi\">Push-In: Co-Teaching Support</span>"
         : "I Do &mdash; <span class=\"mode-callout po\">Pull-Out: Small Group Instruction</span>";
       h += "<h3>" + idHead + "</h3>" + stepList(idArr);
-
     } else if (state.tab === 2) {
       h += "<h3>We Do &mdash; Guided Practice</h3>" + stepList(L.wd);
-
     } else if (state.tab === 3) {
       h += "<h3>You Do &mdash; Independent Task</h3>" + stepList(L.yd);
-
     } else if (state.tab === 4) {
       h += "<h3>Vocabulary</h3>" + vocabGrid(L.voc);
-
     } else if (state.tab === 5) {
       h += "<h3>Differentiation</h3>" + diffBlock(L.df);
-
     } else if (state.tab === 6) {
       var planArr  = isPi ? L.plan_pi : L.plan_po;
       var planHead = isPi
@@ -287,11 +273,8 @@
         : "5-Day Plan (30 min/day) &mdash; <span class=\"mode-callout po\">Pull-Out Schedule</span>";
       h += "<h3>" + planHead + "</h3>" + planTable(planArr);
     }
-
     h += "</div>";
     document.getElementById("lesson-content").innerHTML = h;
-    var durEl = document.getElementById("dur-sel");
-    if (durEl) { durEl.value = String(state.cDur); durEl.addEventListener("change", function(){ state.cDur = parseInt(this.value, 10); render(); }); }
   }
 
   // — Savvas lesson panel ——————————————————————————————————
@@ -313,7 +296,7 @@
     }
     var U = SAVVAS[state.sUnit];
     var W = U.weeks[state.sWeek];
-    var LV = (state.level === "below") ? W.below : W.on;
+    var LV   = (state.level === "below") ? W.below : W.on;
     var isPi = (state.mode === "push-in");
     var block = isPi ? LV.pushIn : LV.pullOut;
     var h = "";
@@ -333,39 +316,53 @@
 
     h += "<div class=\"tab-panel\">";
     h += "<h3>Materials</h3><p class=\"ov-text\">" + LV.materials + "</p>";
-    h += "<h3>" + (isPi ? "Push-In Plan (60 min/day)" : "Pull-Out Plan (30 min/day &mdash; Day 1 always whole-group)") + "</h3>" +
+    h += "<h3>" + (isPi ? "Push-In Plan (60 min/day)" : "Pull-Out Plan (30 min/day \u2014 Day 1 always whole-group)") + "</h3>" +
          savvasPlanTable(block.plan, block.duration);
     h += "<h3>Scaffolds / EL Supports</h3><ul>";
     for (var i = 0; i < (block.scaffolds || []).length; i++) { h += "<li>" + block.scaffolds[i] + "</li>"; }
     h += "</ul>";
     h += "<h3>Progress Monitoring</h3><p class=\"ov-text\">" + (block.monitoring || "") + "</p>";
     h += "</div>";
-
     el.innerHTML = h;
   }
 
-  // — tracker render —————————————————————————————————————————
+  // — tracker render ————————————————————————————————————————
   function renderTracker() {
     var tabsEl = document.getElementById("tabs");
     if (tabsEl) { tabsEl.innerHTML = ""; tabsEl.style.display = "none"; }
     var el = document.getElementById("lesson-content");
-    el.style.padding = "0";
-    el.style.background = "transparent";
-    el.style.overflow = "hidden";
-    el.style.display = "flex";
-    el.style.height = "100%";
+    el.style.padding     = "0";
+    el.style.background  = "transparent";
+    el.style.overflow    = "hidden";
+    el.style.display     = "flex";
+    el.style.height      = "100%";
     if (window.ELL_TRACKER) {
       window.ELL_TRACKER.render(el);
     } else {
-      el.innerHTML = "<div style='padding:2rem;color:#b91c1c;background:#fef2f2;border-radius:8px;margin:1rem;'>tracker.js not loaded — add &lt;script src=\"tracker.js\"&gt;&lt;/script&gt; to index.html before app.js.</div>";
+      el.innerHTML = "<div style='padding:2rem;color:#b91c1c;background:#fef2f2;border-radius:8px;margin:1rem;'>tracker.js not loaded \u2014 add &lt;script src=\"tracker.js\"&gt;&lt;/script&gt; to index.html before app.js.</div>";
     }
   }
 
-  // — full render ————————————————————————————————————————————
-  // — Vista Connect 3 renderer ————————————————————————————————————
+  // — pacing chip formatter ————————————————————————————————
+  function formatPacing(raw) {
+    if (!raw) return "<span style='color:#94a3b8'>\u2014</span>";
+    return raw.split("\u00b7").map(function(seg) {
+      var m = seg.trim().match(/^(.+)\((\d+)\)$/);
+      if (!m) return "<span style='font-size:.78rem'>" + seg + "</span>";
+      return "<span style='display:inline-flex;align-items:center;gap:.2rem;background:#f0f4ff;" +
+             "border:1px solid #c7d2fe;border-radius:6px;padding:.18rem .45rem;margin:.1rem;white-space:nowrap'>" +
+             "<span style='font-size:.73rem;font-weight:600;color:#1e3a8a'>" + m[1] + "</span>" +
+             "<span style='background:#3b5bdb;color:#fff;border-radius:4px;padding:.02rem .28rem;font-size:.68rem'>" + m[2] + "m</span>" +
+             "</span>";
+    }).join("");
+  }
+
+  // — Vista Connect 3 renderer ————————————————————————————
   function renderConnectSection() {
     if (!CONNECT.length) {
-      document.getElementById("lesson-content").innerHTML = "<div class='error-banner'><h2>&#9888; Vista Connect 3 not loaded</h2><p>Add connect_u1.js through connect_u8.js before app.js in index.html.</p></div>";
+      document.getElementById("lesson-content").innerHTML =
+        "<div class='error-banner'><h2>&#9888; Vista Connect 3 not loaded</h2>" +
+        "<p>Add connect_u1.js through connect_u8.js before app.js in index.html.</p></div>";
       return;
     }
     var U = CONNECT[state.cUnit] || CONNECT[0];
@@ -375,47 +372,64 @@
     h += "<div style='font-size:.83rem;color:#64748b;margin-top:.25rem'><em>" + U.reading + "</em> \u00b7 " + U.genre + " \u00b7 Strategy: " + U.strategy + "</div>";
     h += "<div style='font-size:.81rem;color:#64748b'>Grammar: " + U.gram1 + " / " + U.gram2 + "</div></div>";
     h += "<div style='display:flex;gap:.4rem;align-items:center'>";
-    h += "<select id='dur-sel' style='font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1.5px solid #dde3f0;background:#fff;color:#1e3a8a;font-weight:600;cursor:pointer'><option value='30'>30 min</option><option value='45'>45 min</option><option value='60'>60 min</option><option value='90'>90 min</option></select>";
+    h += "<button id='dur-toggle' class='tab-btn' style='font-size:.76rem'>&#9201; " + state.cDur + " min</button>";
     if (state.cSession >= 0) h += "<button id='conn-back' class='tab-btn' style='font-size:.76rem'>&#8592; Sessions</button>";
     h += "</div></div></div>";
+
     if (state.cSession < 0) {
+      // — session grid ——
       h += "<div style='padding:1rem'>";
       [true, false].forEach(function(isLL) {
-        h += "<div style='font-size:.84rem;font-weight:700;color:" + (isLL?"#1e3a8a":"#7c3aed") + ";margin:.75rem 0 .4rem'>" + (isLL?"Language & Literacy (Sessions 1\u201310)":"Content & Writing (Sessions 11\u201321)") + "</div>";
+        h += "<div style='font-size:.84rem;font-weight:700;color:" + (isLL?"#1e3a8a":"#7c3aed") +
+             ";margin:.75rem 0 .4rem'>" +
+             (isLL ? "Language &amp; Literacy (Sessions 1\u201310)" : "Content &amp; Writing (Sessions 11\u201321)") +
+             "</div>";
         h += "<div style='display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.4rem'>";
-        U.sessions.filter(function(s){ return isLL ? s.n<=10 : s.n>=11; }).forEach(function(s){
-          h += "<div data-csession='" + (s.n-1) + "' style='background:" + (isLL?"#eff6ff":"#f5f3ff") + ";border:1.5px solid " + (isLL?"#bfdbfe":"#ddd6fe") + ";border-radius:8px;padding:.5rem .6rem;cursor:pointer'>";
+        U.sessions.filter(function(s){ return isLL ? s.n <= 10 : s.n >= 11; }).forEach(function(s) {
+          h += "<div data-csession='" + (s.n-1) + "' style='background:" + (isLL?"#eff6ff":"#f5f3ff") +
+               ";border:1.5px solid " + (isLL?"#bfdbfe":"#ddd6fe") +
+               ";border-radius:8px;padding:.5rem .6rem;cursor:pointer'>";
           h += "<div style='font-size:.7rem;font-weight:700;color:" + (isLL?"#1e40af":"#7c3aed") + "'>S" + s.n + " \u00b7 " + s.type + "</div>";
           h += "<div style='font-size:.76rem;font-weight:600;color:#0f172a;margin-top:.1rem'>" + s.area + "</div>";
-          h += "<div style='font-size:.71rem;color:#64748b;line-height:1.3;margin-top:.1rem'>" + s.act.slice(0,52) + (s.act.length>52?"\u2026":"") + "</div></div>";
+          h += "<div style='font-size:.71rem;color:#64748b;line-height:1.3;margin-top:.1rem'>" + s.act.slice(0,52) + (s.act.length>52?"\u2026":"") + "</div>";
+          h += "</div>";
         });
         h += "</div>";
       });
       h += "</div>";
     } else {
+      // — session detail ——
       var S = U.sessions[state.cSession];
-      if (!S) { h += "<div style='padding:1rem;color:#dc2626'>Session not found.</div>"; }
-      else {
-        var isLL2 = S.type==="L&L";
+      if (!S) {
+        h += "<div style='padding:1rem;color:#dc2626'>Session not found.</div>";
+      } else {
+        var isLL2 = S.type === "L&L";
         h += "<div style='padding:.75rem 1rem'>";
         h += "<div style='display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem'>";
-        h += "<span style='background:" + (isLL2?"#dbeafe":"#ede9fe") + ";color:" + (isLL2?"#1e40af":"#6d28d9") + ";padding:.18rem .55rem;border-radius:12px;font-size:.74rem;font-weight:700'>S" + S.n + " \u00b7 " + S.type + "</span>";
+        h += "<span style='background:" + (isLL2?"#dbeafe":"#ede9fe") + ";color:" + (isLL2?"#1e40af":"#6d28d9") +
+             ";padding:.18rem .55rem;border-radius:12px;font-size:.74rem;font-weight:700'>S" + S.n + " \u00b7 " + S.type + "</span>";
         h += "<span style='background:#f1f5f9;color:#475569;padding:.18rem .55rem;border-radius:12px;font-size:.74rem;font-weight:600'>" + S.area + "</span>";
         if (S.pb) h += "<span style='background:#fef9c3;color:#713f12;padding:.18rem .55rem;border-radius:12px;font-size:.74rem'>PB " + S.pb + "</span>";
         h += "</div>";
         h += "<p style='font-size:.9rem;font-weight:600;color:#0f172a;line-height:1.5;margin:0 0 .5rem'>" + S.act + "</p>";
         h += "<p style='font-size:.82rem;color:#64748b;margin:0 0 .8rem'><strong>Materials:</strong> " + (S.mat||"Student Book") + "</p>";
-        h += "<div style='font-size:.84rem;font-weight:700;margin-bottom:.35rem'>&#9201; Pacing <span style='font-weight:400;font-size:.78rem;color:#64748b'>(tap timer above to switch)</span></div>";
+        h += "<div style='font-size:.84rem;font-weight:700;margin-bottom:.35rem'>&#9201; Pacing " +
+             "<span style='font-weight:400;font-size:.78rem;color:#64748b'>(tap timer above to switch)</span></div>";
+        // FIX: use formatPacing() to render chips instead of raw text
         h += "<table style='width:100%;border-collapse:collapse;font-size:.81rem;margin-bottom:.8rem'>";
-        [30,45,60,90].forEach(function(d){
-          var sel = d===state.cDur;
+        [30,45,60,90].forEach(function(d) {
+          var sel = (d === state.cDur);
           h += "<tr style='background:" + (sel?"#eff6ff":"") + ";border:1px solid #e2e8f0'>";
           h += "<td style='padding:.35rem .6rem;font-weight:700;color:" + (sel?"#1e40af":"#64748b") + ";white-space:nowrap;width:52px'>" + d + " min</td>";
-          h += "<td style='padding:.35rem .6rem;color:#334155'>" + (S["t"+d]||"") + "</td></tr>";
+          h += "<td style='padding:.35rem .6rem'>" + formatPacing(S["t"+d]) + "</td></tr>";
         });
         h += "</table>";
-        var po = (typeof CONN_PO!=="undefined" && CONN_PO[S.n]) ? CONN_PO[S.n] : "";
-        if (po) h += "<div style='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:.7rem .9rem'><div style='font-size:.81rem;font-weight:700;color:#14532d;margin-bottom:.3rem'>&#129001; Pull-Out Notes</div><div style='font-size:.81rem;color:#166534;line-height:1.65'>" + po + "</div></div>";
+        var po = (typeof CONN_PO !== "undefined" && CONN_PO[S.n]) ? CONN_PO[S.n] : "";
+        if (po) {
+          h += "<div style='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:.7rem .9rem'>" +
+               "<div style='font-size:.81rem;font-weight:700;color:#14532d;margin-bottom:.3rem'>&#129001; Pull-Out Notes</div>" +
+               "<div style='font-size:.81rem;color:#166534;line-height:1.65'>" + po + "</div></div>";
+        }
         h += "</div>";
       }
     }
@@ -423,11 +437,23 @@
     document.getElementById("lesson-content").innerHTML = h;
   }
 
+  // — full render ————————————————————————————————————————————
   function render() {
     renderSidebar();
     renderTabs();
     renderModeBtn();
-    if (state.section === "savvas") { renderSavvasLesson(); } else if (state.section === "tracker") { renderTracker(); } else if (state.section === "connect") { renderConnectSection(); } else { renderLesson(); }
+    var lc = document.getElementById("lesson-content");
+    if (state.section !== "tracker") {
+      lc.style.padding    = "";
+      lc.style.background = "";
+      lc.style.overflow   = "";
+      lc.style.display    = "";
+      lc.style.height     = "";
+    }
+    if      (state.section === "savvas")  { renderSavvasLesson(); }
+    else if (state.section === "tracker") { renderTracker(); }
+    else if (state.section === "connect") { renderConnectSection(); }
+    else                                  { renderLesson(); }
     saveState();
   }
 
@@ -436,7 +462,8 @@
     var t = e.target;
 
     if (t.id === "section-toggle") {
-      state.section = (state.section === "connect") ? "savvas" : "connect"; state.cSession = -1;
+      state.section = (state.section === "connect") ? "savvas" : "connect";
+      state.cSession = -1;
       render();
       return;
     }
@@ -444,8 +471,6 @@
     if (t.dataset && t.dataset.section) {
       state.section = t.dataset.section;
       state.unit = 0; state.week = 0; state.tab = 0;
-      var lc = document.getElementById("lesson-content");
-      if (lc) { lc.style.padding = ""; lc.style.background = ""; lc.style.overflow = ""; lc.style.display = ""; lc.style.height = ""; }
       render();
       return;
     }
@@ -456,6 +481,7 @@
       return;
     }
 
+    // FIX: unit-title click — added connect (data-cunit) branch
     if (t.classList && t.classList.contains("unit-title")) {
       var ug = t.parentElement;
       if (ug && ug.dataset.unit !== undefined) {
@@ -467,6 +493,10 @@
         state.sUnit = parseInt(ug.dataset.svunit, 10);
         state.sWeek = 0;
         render();
+      } else if (ug && ug.dataset.cunit !== undefined) {
+        state.cUnit    = parseInt(ug.dataset.cunit, 10);
+        state.cSession = -1;
+        render();
       }
       return;
     }
@@ -477,9 +507,23 @@
         state.week = parseInt(t.dataset.week, 10);
         state.tab  = 0;
       } else if (t.dataset.svunit !== undefined) {
-        state.sUnit = parseInt(t.dataset.svunit, 10);
-        state.sWeek = parseInt(t.dataset.svweek, 10);
+        state.sUnit  = parseInt(t.dataset.svunit, 10);
+        state.sWeek  = parseInt(t.dataset.svweek, 10);
       }
+      render();
+      return;
+    }
+
+    // FIX: conn-back and dur-toggle must come BEFORE tab-btn check
+    // (both buttons have class tab-btn and would otherwise be swallowed)
+    if (t.id === "conn-back") {
+      state.cSession = -1;
+      render();
+      return;
+    }
+    if (t.id === "dur-toggle") {
+      var durs = [30,45,60,90], di = durs.indexOf(state.cDur);
+      state.cDur = durs[(di+1) % 4];
       render();
       return;
     }
@@ -496,15 +540,27 @@
       return;
     }
 
-    var cuEl = t.closest ? t.closest("[data-cunit]") : (t.dataset && t.dataset.cunit !== undefined ? t : (t.parentElement && t.parentElement.dataset && t.parentElement.dataset.cunit !== undefined ? t.parentElement : null));
+    // Connect unit click from sidebar (data-cunit on wrapper div)
+    var cuEl = t.closest ? t.closest("[data-cunit]") :
+               (t.dataset && t.dataset.cunit !== undefined ? t :
+               (t.parentElement && t.parentElement.dataset && t.parentElement.dataset.cunit !== undefined ? t.parentElement : null));
     if (cuEl && cuEl.dataset.cunit !== undefined) {
-      state.cUnit = parseInt(cuEl.dataset.cunit, 10); state.cSession = -1; state.section = "connect"; render(); return;
+      state.cUnit    = parseInt(cuEl.dataset.cunit, 10);
+      state.cSession = -1;
+      state.section  = "connect";
+      render();
+      return;
     }
-    var csEl = t.closest ? t.closest("[data-csession]") : (t.dataset && t.dataset.csession !== undefined ? t : (t.parentElement && t.parentElement.dataset && t.parentElement.dataset.csession !== undefined ? t.parentElement : null));
+
+    // Connect session card click
+    var csEl = t.closest ? t.closest("[data-csession]") :
+               (t.dataset && t.dataset.csession !== undefined ? t :
+               (t.parentElement && t.parentElement.dataset && t.parentElement.dataset.csession !== undefined ? t.parentElement : null));
     if (csEl && csEl.dataset.csession !== undefined) {
-      state.cSession = parseInt(csEl.dataset.csession, 10); render(); return;
+      state.cSession = parseInt(csEl.dataset.csession, 10);
+      render();
+      return;
     }
-    if (t.id === "conn-back") { state.cSession = -1; render(); return; }
 
     if (t.id === "print-btn") { window.print(); }
   });
@@ -514,3 +570,5 @@
   render();
 
 }());
+```
+
