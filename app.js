@@ -18,7 +18,7 @@
   var UNITS = window.ELL_UNITS;
   var CONNECT = (window.CONNECT_UNITS && window.CONNECT_UNITS.length > 0) ? window.CONNECT_UNITS : [];
   var TABS  = ["Overview", "I Do", "We Do", "You Do", "Vocabulary", "Differentiation", "5-Day Plan"];
-  
+
   var CONN_PO = ["",
     "[S1 \u2014 Unit Opener] Play theme video + image walk. Pre-teach 2\u20133 unit theme words. Frame: \u2018The Big Idea is ___.\u2019 Connect to students\u2019 own experiences with the theme.",
     "[S2 \u2014 Before You Read] Build background with photos/realia before text. Model reading strategy with a short mentor text first. Add strategy name to anchor chart.",
@@ -290,6 +290,8 @@
 
     h += "</div>";
     document.getElementById("lesson-content").innerHTML = h;
+    var durEl = document.getElementById("dur-sel");
+    if (durEl) { durEl.value = String(state.cDur); durEl.addEventListener("change", function(){ state.cDur = parseInt(this.value, 10); render(); }); }
   }
 
   // — Savvas lesson panel ——————————————————————————————————
@@ -373,7 +375,7 @@
     h += "<div style='font-size:.83rem;color:#64748b;margin-top:.25rem'><em>" + U.reading + "</em> \u00b7 " + U.genre + " \u00b7 Strategy: " + U.strategy + "</div>";
     h += "<div style='font-size:.81rem;color:#64748b'>Grammar: " + U.gram1 + " / " + U.gram2 + "</div></div>";
     h += "<div style='display:flex;gap:.4rem;align-items:center'>";
-    h += "<button id='dur-toggle' class='tab-btn' style='font-size:.76rem'>&#9201; " + state.cDur + " min</button>";
+    h += "<select id='dur-sel' style='font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1.5px solid #dde3f0;background:#fff;color:#1e3a8a;font-weight:600;cursor:pointer'><option value='30'>30 min</option><option value='45'>45 min</option><option value='60'>60 min</option><option value='90'>90 min</option></select>";
     if (state.cSession >= 0) h += "<button id='conn-back' class='tab-btn' style='font-size:.76rem'>&#8592; Sessions</button>";
     h += "</div></div></div>";
     if (state.cSession < 0) {
@@ -465,10 +467,6 @@
         state.sUnit = parseInt(ug.dataset.svunit, 10);
         state.sWeek = 0;
         render();
-      } else if (ug && ug.dataset.cunit !== undefined) {
-        state.cUnit = parseInt(ug.dataset.cunit, 10);
-        state.cSession = -1;
-        render();
       }
       return;
     }
@@ -486,11 +484,6 @@
       return;
     }
 
-    if (t.id === "conn-back") { state.cSession = -1; render(); return; }
-    if (t.id === "dur-toggle") {
-      var durs = [30,45,60,90], di = durs.indexOf(state.cDur);
-      state.cDur = durs[(di+1)%4]; render(); return;
-    }
     if (t.classList && t.classList.contains("tab-btn")) {
       state.tab = parseInt(t.dataset.tab, 10);
       render();
@@ -512,10 +505,7 @@
       state.cSession = parseInt(csEl.dataset.csession, 10); render(); return;
     }
     if (t.id === "conn-back") { state.cSession = -1; render(); return; }
-    if (t.id === "dur-toggle") {
-      var durs = [30,45,60,90], di = durs.indexOf(state.cDur);
-      state.cDur = durs[(di+1)%4]; render(); return;
-    }
+
     if (t.id === "print-btn") { window.print(); }
   });
 

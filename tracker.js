@@ -70,7 +70,8 @@
      dok:[{lvl:1,q:"What did Ella and her dad build? Where did they hang it?",a:"A small wooden birdhouse / On a tree branch"},{lvl:2,q:"Why did Ella feel proud? What happened after they finished?",a:"She helped create something useful / A bird flew inside to build a nest"},{lvl:3,q:"What does the bird's arrival show about the success of the project?",a:"Their creation immediately served its purpose — real-world impact validates the effort"},{lvl:4,q:"Compare building a birdhouse to another family project.",a:"Open response — skills learned, bonding, lasting real-world impact"}]},
     {id:22,title:"The Evening Bike Ride",
      passage:"The bright sun started to set behind the hills. Ryan put on his black helmet and rode his red bicycle down the street. The cool night air felt nice on his face as he sped up. He enjoyed the quiet evening, noticing the stars beginning to appear. Riding his bike at sunset made him feel free and peaceful.",
-     dok:[{lvl:1,q:"What safety gear did Ryan wear? When did he ride his bike?",a:"A black helmet / In the evening at sunset"},{lvl:2,q:"Why did Ryan enjoy the ride? What did he notice in the sky?",a:"Cool air, quiet, felt free / Stars beginning to appear"},{lvl:3,q:"What does Ryan's feeling of freedom show about his love for biking?",a:"Biking gives him a sense of independence and peace — it is an emotional outlet"},{lvl:4,q:"Compare riding a bike in the evening to riding during the day.",a:"Open response — sensory differences, safety, mood, visibility, experience"}]},
+     dok:[{lvl:1,q:"What safety gear did Ryan wear? When did he ride his bike?",a:"A black helmet / In the evening at sunset"},{lvl:2,q:"Why did Ryan enjoy the ride? What did he notice in the sky?",a:"Cool air, quiet, felt free / Stars beginning to appear"},{lvl:3,q:"What does Ryan's feeling of freedom show about his love for biking?",a:"Biking gives him a sense of independence and peace — it is an emotional outlet"},{lvl:4,q:"Compare riding a bike in the evening to riding during the day.",a:"Open response — sensory differences, safety, mood, visibility, experience"}]}
+    {id:3,title:"Fresh Apples",wc:36},{id:4,title:"The Little Frog",wc:35},
     
   ];
 
@@ -379,6 +380,31 @@
     if(passBtn) passBtn.addEventListener("click",function(){ renderPassages(container); });
   }
 
+  function printStudentCopy(id) {
+    var s = null;
+    for (var i = 0; i < STORIES.length; i++) { if (STORIES[i].id === id) { s = STORIES[i]; break; } }
+    if (!s) return;
+    var html = "<!DOCTYPE html><html><head><meta charset='UTF-8'><title>" + s.title + "</title>"
+      + "<style>body{font-family:Georgia,serif;max-width:620px;margin:2.5rem auto;padding:0 1.5rem;font-size:13pt;line-height:1.75;color:#111;}"
+      + "h1{font-size:1.15rem;font-weight:700;margin-bottom:.2rem;}h2{font-size:.9rem;font-weight:400;color:#555;margin:0 0 1.25rem;}"
+      + ".passage{margin-bottom:1.75rem;border-bottom:1px solid #ccc;padding-bottom:1.5rem;}"
+      + ".q-blk{margin-bottom:1rem;}.q-lbl{font-weight:700;font-size:.95rem;margin-bottom:.3rem;display:flex;gap:.5rem;}"
+      + ".q-dok{font-size:.78rem;background:#ede9fe;color:#6d28d9;border-radius:10px;padding:.1rem .45rem;font-weight:700;flex-shrink:0;align-self:flex-start;margin-top:.1rem;}"
+      + ".ans-line{border-bottom:1px solid #bbb;min-height:1.4rem;margin:.2rem 0 .35rem;}"
+      + ".print-btn{background:#1e3a8a;color:#fff;border:none;border-radius:6px;padding:.42rem 1rem;font-size:.88rem;cursor:pointer;margin-top:.75rem;}"
+      + "@media print{.print-btn{display:none!important;}.name-row{border-bottom:1px solid #999;}}</style></head>"
+      + "<body><h1>Story " + s.id + ": " + s.title + "</h1>"
+      + "<h2>" + s.wc + " words &nbsp;&bull;&nbsp; <span class='name-row'>Name: _________________________________&nbsp;&nbsp;&nbsp; Date: ___________</span></h2>"
+      + "<div class='passage'>" + s.passage + "</div>"
+      + "<div class='questions'>";
+    s.dok.forEach(function(dq, i) {
+      html += "<div class='q-blk'><div class='q-lbl'><span class='q-dok'>DOK " + dq.lvl + "</span><span>" + (i+1) + ". " + dq.q + "</span></div><div class='ans-line'></div><div class='ans-line'></div></div>";
+    });
+    html += "</div><button class='print-btn' onclick='window.print()'>&#128438; Print Student Copy</button></body></html>";
+    var w = window.open("","_blank","width=720,height=900");
+    if (w) { w.document.write(html); w.document.close(); }
+  }
+
   function renderPassages(container) {
     var h="<div class='trk-passages'>";
     h+="<div class='trk-pass-hd'><strong>22 Expanded Passages + DOK 1\u20134 Questions</strong> ";
@@ -386,7 +412,7 @@
     h+="<div style='font-size:.78rem;color:#64748b;padding:.2rem 0 .6rem'>Flags: passes DOK 1+2, misses 3+4 = Reasoning Weakness | misses 1+2, passes 3+4 = Recall Weakness | passes all = Balanced</div>";
     STORIES.forEach(function(s){
       h+="<div class='trk-pass-card'>";
-      h+="<div class='trk-pass-title'>Story "+s.id+": "+s.title+"</div>";
+      h+="<div class='trk-pass-title' style='display:flex;justify-content:space-between;align-items:center;gap:.4rem'><span>Story "+s.id+": "+s.title+"</span><button class='trk-stucopy-btn trk-btn-sm' data-sid='"+s.id+"' style='font-size:.72rem;flex-shrink:0'>&#128438; Student Copy</button></div>";
       h+="<p class='trk-pass-text'>"+s.passage+"</p>";
       h+="<div class='trk-pass-qs'>";
       s.dok.forEach(function(dq){
@@ -400,6 +426,9 @@
     if(p) p.addEventListener("click",function(){ window.print(); });
     var b=document.getElementById("trk-back-btn");
     if(b) b.addEventListener("click",function(){ renderInto(container); });
+    container.querySelectorAll(".trk-stucopy-btn").forEach(function(btn){
+      btn.addEventListener("click",function(){ printStudentCopy(parseInt(this.dataset.sid,10)); });
+    });
   }
 
   window.ELL_TRACKER = { render: renderInto };
