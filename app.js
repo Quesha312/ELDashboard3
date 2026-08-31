@@ -1,4 +1,3 @@
-```javascript
 // app.js — ELL Teacher Dashboard
 (function () {
   "use strict";
@@ -570,5 +569,3 @@
   render();
 
 }());
-```
-
