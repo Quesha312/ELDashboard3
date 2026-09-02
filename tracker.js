@@ -90,6 +90,13 @@
     return {label:"Needs Support", cls:"flag-support", tip:"Struggles at multiple DOK levels"};
   }
 
+  var DOLCH_WORDS = {
+    "pre":["a","and","away","big","blue","can","come","down","find","for","funny","go","help","here","I","in","is","it","jump","little","look","make","me","my","not","one","play","red","run","said","see","the","three","to","two","up","we","where","yellow","you"],
+    "primer":["all","am","are","at","ate","be","black","brown","but","came","did","do","eat","four","get","good","have","he","into","like","must","new","no","now","on","our","out","please","pretty","ran","ride","saw","say","she","so","soon","that","there","they","this","too","under","want","was","well","went","what","white","who","will","with","yes"],
+    "g1":["after","again","an","any","ask","by","could","every","fly","from","give","giving","had","has","her","him","his","how","just","know","let","live","may","of","old","once","open","over","put","round","some","stop","take","thank","them","then","think","walk","were","when"],
+    "g2":["always","around","because","been","before","best","both","buy","call","cold","does","don't","fast","first","five","found","gave","goes","green","its","made","many","off","or","pull","read","right","sing","sit","sleep","tell","their","these","those","upon","us","use","very","wash","which","why","wish","work","would","write","your"],
+    "g3":["about","better","bring","carry","clean","cut","done","draw","drink","eight","fall","far","full","got","grow","hold","hot","hurt","if","keep","kind","laugh","light","long","much","myself","never","nine","only","own","pick","seven","shall","show","six","small","start","ten","today","together","try","warm"]
+  };
   var KEY = "ell_tracker_v3";
   var _sid = null;
 
@@ -105,11 +112,10 @@
   }
 
   function getScore(e, station) {
-    var m = STATION_META[station];
-    if (m.scoreType==="wpm")     return e.wpm||0;
-    if (m.scoreType==="mastery") return e.total ? Math.round(e.correct/e.total*100) : 0;
-    if (m.scoreType==="dok")     return Math.round(((e.dok1?1:0)+(e.dok2?1:0)+(e.dok3?1:0)+(e.dok4?1:0))/4*100);
-    return 0;
+    if (station==="Sight Words")   return e.score||0;
+    if (station==="Fluency")       return e.wpm||0;
+    if (station==="Comprehension") return Math.round(((e.dok1?1:0)+(e.dok2?1:0)+(e.dok3?1:0)+(e.dok4?1:0))/4*100);
+    return e.score||e.wpm||0;
   }
   function peerAvg(students, station, excludeId) {
     var peers=students.filter(function(s){ return s.station===station&&s.id!==excludeId&&s.entries.length; });
@@ -153,7 +159,8 @@
       if (!grp.length) { h += "<div class='trk-empty-s'>No students</div>"; }
       grp.forEach(function(s){
         var t = trend(s.entries);
-        var last = s.entries.length ? s.entries[s.entries.length-1].wpm + " WPM" : "\u2014";
+        var lastE = s.entries.length ? s.entries[s.entries.length-1] : null;
+        var last = !lastE ? "\u2014" : s.station==="Sight Words" ? (lastE.score||0)+"% mastery" : s.station==="Fluency" ? (lastE.wpm||0)+" WPM" : (lastE.score||0)+"% DOK";
         h += "<div class='trk-scard" + (s.id===_sid?" active":"") + "' data-sid='" + s.id + "'>";
         h += "<div class='trk-sname'>" + s.name + "</div>";
         h += "<div class='trk-smeta'>" + last + " " + (t==="up"?"\u2191":t==="down"?"\u2193":t==="flat"?"\u2192":"\u25CB") + "</div></div>";
@@ -177,34 +184,27 @@
       // Per-station score form
       h += "<div class='trk-log-form'><div class='trk-frow'>";
       h += "<label>Date<input id='trk-date' type='date' class='trk-inp-sm' value='" + new Date().toISOString().slice(0,10) + "'></label>";
-      if (m2.scoreType==="wpm") {
-        h += "<label>WPM<input id='trk-wpm' type='number' min='1' max='400' placeholder='e.g. 78' class='trk-inp-sm'></label>";
-        h += "<label>Errors<input id='trk-errors' type='number' min='0' max='200' placeholder='e.g. 3' class='trk-inp-sm'></label>";
-        h += "<label>Total Words<input id='trk-totalw' type='number' min='1' max='400' placeholder='e.g. 81' class='trk-inp-sm'></label>";
-        h += "<label>Passage<select id='trk-story' class='trk-sel'>";
+      if (sel.station==="Sight Words") {
+        h += "<label>Dolch Level<select id='trk-sw-lvl' class='trk-sel'>";
+        h += "<option value='pre'>Pre-Primer (40)</option><option value='primer'>Primer (52)</option>";
+        h += "<option value='g1'>1st Grade (41)</option><option value='g2'>2nd Grade (46)</option>";
+        h += "<option value='g3'>3rd Grade (41)</option></select></label></div>";
+        h += "<div id='trk-sw-grid' style='padding:.35rem 0;min-height:28px'></div>";
+        h += "<div id='trk-sw-score' style='font-size:.78rem;color:#1d4ed8;padding:.2rem 0;font-weight:600'>Select a level to load words</div>";
+      } else if (sel.station==="Fluency") {
+        h += "<label>Passage<select id='trk-story' class='trk-sel'><option value=''>\u2014 Select \u2014</option>";
         STORIES.forEach(function(s){ h += "<option value='" + s.id + "'>Story " + s.id + ": " + s.title + "</option>"; });
-        h += "</select></label>";
-      } else if (m2.scoreType==="mastery") {
-        h += "<label>Words Correct<input id='trk-correct' type='number' min='0' max='300' placeholder='e.g. 18' class='trk-inp-sm'></label>";
-        h += "<label>Total Tested<input id='trk-total' type='number' min='1' max='300' placeholder='e.g. 20' class='trk-inp-sm'></label>";
-      } else if (m2.scoreType==="dok") {
-        h += "<label>Passage<select id='trk-story' class='trk-sel'>";
+        h += "</select></label><label>Time (mins)<input id='trk-time' type='number' step='0.5' min='0.5' max='10' class='trk-inp-sm' placeholder='1.5'></label></div>";
+        h += "<div id='trk-fl-words' style='display:none;margin:.4rem 0'></div>";
+      } else {
+        h += "<label>Passage<select id='trk-story' class='trk-sel'><option value=''>\u2014 Select \u2014</option>";
         STORIES.forEach(function(s){ h += "<option value='" + s.id + "'>Story " + s.id + ": " + s.title + "</option>"; });
-        h += "</select></label>";
-      }
-      h += "</div>";
-      if (m2.scoreType==="dok") {
-        h += "<div id='trk-dok-box' class='trk-dok-box'>";
-        STORIES[0].dok.forEach(function(dq,i){
-          h += "<label class='trk-dok-q'><input type='checkbox' id='trk-dok" + (i+1) + "'>";
-          h += "<span class='trk-dok-badge trk-dok-l" + dq.lvl + "'>DOK " + dq.lvl + "</span>";
-          h += "<span>" + dq.q + "</span></label>";
-        });
-        h += "</div>";
+        h += "</select></label><label>Read time (min)<input id='trk-time' type='number' step='0.5' min='0.5' max='20' class='trk-inp-sm' placeholder='3.5'></label></div>";
+        h += "<div id='trk-cp-area' style='display:none;margin:.4rem 0'></div>";
       }
       var avg2 = peerAvg(students, sel.station, sel.id);
       h += "<div class='trk-frow'><label>Notes<input id='trk-notes' class='trk-inp-sm' placeholder='Optional teacher notes'></label>";
-      h += "<button id='trk-log' class='trk-btn-pri' data-sid='" + sel.id + "'>Log Score</button></div></div>";
+      h += "<button id='trk-log' class='trk-btn-pri' data-sid='" + sel.id + "'>Log Session</button></div></div>";
 
       // Chart
       var scoreLabel = m2.scoreType==="wpm"?"WPM":m2.scoreType==="mastery"?"Mastery %":"DOK %";
@@ -221,23 +221,24 @@
       } else {
         var sorted=sel.entries.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
         h += "<table class='trk-tbl'><thead><tr><th>Date</th><th>Detail</th><th>Score</th>";
-        if (m2.scoreType==="dok") h += "<th>Flag</th>";
+        if (sel.station==="Comprehension") h += "<th>Flag</th>";
         h += "<th>Notes</th><th></th></tr></thead><tbody>";
         sorted.forEach(function(e) {
           var story=STORIES.find(function(s){return s.id===e.storyId;})||null;
-          var disp="", detail=story?story.title:"\u2014";
-          if (m2.scoreType==="wpm") {
-            var acc=e.totalWords?Math.round(((e.totalWords-e.errors)/e.totalWords)*100):null;
-            disp="<strong>"+e.wpm+"</strong> WPM"+(acc!==null?" / "+acc+"% acc":"");
-          } else if (m2.scoreType==="mastery") {
-            var pct=e.total?Math.round(e.correct/e.total*100):0;
-            disp="<strong>"+pct+"%</strong> ("+e.correct+"/"+e.total+")"; detail="Sight words";
-          } else if (m2.scoreType==="dok") {
+          var disp="", detail="\u2014";
+          if (sel.station==="Sight Words") {
+            detail="Dolch "+(e.swLevel||"")+": "+(e.swCorrect||[]).length+"/"+(e.swTested||[]).length+" words";
+            disp="<strong>"+(e.score||0)+"%</strong>";
+          } else if (sel.station==="Fluency") {
+            detail=(e.storyTitle||"\u2014")+" \u00b7 "+(e.stoppedIdx!==undefined?e.stoppedIdx+1:0)+" words \u00b7 "+(e.redWords||[]).length+" errors";
+            disp="<strong>"+(e.wpm||0)+"</strong> WPM";
+          } else {
             var dp=Math.round(((e.dok1?1:0)+(e.dok2?1:0)+(e.dok3?1:0)+(e.dok4?1:0))/4*100);
+            detail=e.storyTitle||"\u2014";
             disp="<strong>"+dp+"%</strong> "+(e.dok1?"1\u2713":"1\u2717")+" "+(e.dok2?"2\u2713":"2\u2717")+" "+(e.dok3?"3\u2713":"3\u2717")+" "+(e.dok4?"4\u2713":"4\u2717");
           }
           h += "<tr><td>"+e.date+"</td><td>"+detail+"</td><td>"+disp+"</td>";
-          if (m2.scoreType==="dok") {
+          if (sel.station==="Comprehension") {
             var f=dokFlag(e.dok1,e.dok2,e.dok3,e.dok4);
             h += "<td><span class='trk-flag "+f.cls+"' title='"+f.tip+"'>"+f.label+"</span></td>";
           }
@@ -316,50 +317,141 @@
       var d=load(); var s={id:uid(),name:name,wr:wr,ws:ws,station:assignStation(wr,ws),entries:[]};
       d.students.push(s); save(d); _sid=s.id; renderInto(container);
     });
-    container.querySelectorAll(".trk-scard").forEach(function(card){
-      card.addEventListener("click",function(){ _sid=card.dataset.sid; renderInto(container); });
+    var _r=container.querySelector(".trk-roster");
+    if(_r) _r.addEventListener("click",function(e){
+      var card=e.target.closest?e.target.closest(".trk-scard"):(e.target.classList.contains("trk-scard")?e.target:e.target.parentElement&&e.target.parentElement.classList.contains("trk-scard")?e.target.parentElement:null);
+      if(card&&card.dataset.sid){_sid=card.dataset.sid;renderInto(container);}
     });
-    var storySelect=document.getElementById("trk-story"), dokBox=document.getElementById("trk-dok-box");
-    if(storySelect&&dokBox) storySelect.addEventListener("change",function(){
-      var story=STORIES.find(function(s){return s.id===parseInt(storySelect.value,10);});
-      if(!story) return;
-      var qh="";
-      story.dok.forEach(function(dq,i){
-        qh+="<label class='trk-dok-q'><input type='checkbox' id='trk-dok"+(i+1)+"'>";
-        qh+="<span class='trk-dok-badge trk-dok-l"+dq.lvl+"'>DOK "+dq.lvl+"</span><span>"+dq.q+"</span></label>";
+    // Sight Words: Dolch level selector populates word grid
+    var swLvl=document.getElementById("trk-sw-lvl");
+    if(swLvl){
+      var fillGrid=function(){
+        var words=DOLCH_WORDS[swLvl.value]||[], grid=document.getElementById("trk-sw-grid");
+        if(!grid) return;
+        var gh="";
+        words.forEach(function(w){
+          gh+="<button class='trk-wb' data-w='"+w+"' data-s='0' style='background:#e2e8f0;color:#334155;border:1px solid #cbd5e1;border-radius:4px;padding:.2rem .45rem;font-size:.78rem;cursor:pointer;margin:.1rem'>"+w+"</button>";
+        });
+        grid.innerHTML=gh;
+        grid.querySelectorAll(".trk-wb").forEach(function(b){
+          b.addEventListener("click",function(){
+            var st=(parseInt(b.dataset.s,10)+1)%3;
+            b.dataset.s=st;
+            if(st===0){b.style.background="#e2e8f0";b.style.color="#334155";}
+            else if(st===1){b.style.background="#dcfce7";b.style.color="#14532d";}
+            else{b.style.background="#fee2e2";b.style.color="#991b1b";}
+            var gr=document.getElementById("trk-sw-grid");
+            var te=Array.from(gr.querySelectorAll(".trk-wb")).filter(function(x){return x.dataset.s!=="0";});
+            var co=te.filter(function(x){return x.dataset.s==="1";});
+            var sc=document.getElementById("trk-sw-score");
+            if(sc) sc.textContent=co.length+"/"+te.length+" words correct ("+(te.length?Math.round(co.length/te.length*100):0)+"%)";
+          });
+        });
+      };
+      swLvl.addEventListener("change",fillGrid);
+      fillGrid();
+    }
+    // Fluency: story selector shows interactive passage; time input recalculates WPM
+    var flSt=document.getElementById("trk-story"), flTm=document.getElementById("trk-time");
+    if(flSt&&sel&&sel.station==="Fluency"){
+      var updWpm=function(){
+        var wg=document.getElementById("trk-fl-wgrid"),dp=document.getElementById("trk-fl-wpm");
+        if(!wg||!dp) return;
+        var ws=wg.querySelectorAll(".trk-w"),gi=-1,rc=0;
+        ws.forEach(function(w,i){if(w.dataset.s==="1")gi=i;if(w.dataset.s==="2"&&i<=gi)rc++;});
+        var tm=parseFloat(flTm&&flTm.value)||0;
+        if(gi<0){dp.textContent="Tap the word where the student stopped (turns green)";return;}
+        dp.textContent=(gi+1)+" words \u00b7 "+rc+" errors \u00b7 "+(tm>0?Math.round((gi+1-rc)/tm)+" WPM":"enter time for WPM");
+      };
+      flSt.addEventListener("change",function(){
+        var story=STORIES.find(function(s){return s.id===parseInt(flSt.value,10);});
+        var wa=document.getElementById("trk-fl-words");
+        if(!story||!wa) return;
+        wa.style.display="";
+        var wrds=story.passage.split(" ");
+        var wh="<div style='font-size:.77rem;color:#64748b;margin-bottom:.25rem'>Click: 1st=\uD83D\uDFE2 stop (1 only) \u00b7 2nd=\uD83D\uDD34 wrong \u00b7 3rd=clear</div>";
+        wh+="<div id='trk-fl-wgrid' style='line-height:2.1;cursor:pointer'>";
+        wrds.forEach(function(w,i){wh+="<span class='trk-w' data-idx='"+i+"' data-s='0' style='padding:.1rem .25rem;border-radius:3px;margin:.05rem;display:inline-block'>"+w+"</span> ";});
+        wh+="</div><div id='trk-fl-wpm' style='font-size:.78rem;color:#1d4ed8;padding:.3rem 0;font-weight:600'>Tap the word where the student stopped</div>";
+        wa.innerHTML=wh;
+        var wg=document.getElementById("trk-fl-wgrid");
+        if(wg) wg.addEventListener("click",function(e){
+          var sp=e.target.classList.contains("trk-w")?e.target:null;
+          if(!sp) return;
+          var st=parseInt(sp.dataset.s,10);
+          if(st===0){var pv=wg.querySelector(".trk-w[data-s='1']");if(pv){pv.dataset.s="0";pv.style.background="transparent";pv.style.color="";pv.style.textDecoration="";}sp.dataset.s="1";sp.style.background="#dcfce7";sp.style.color="#14532d";sp.style.textDecoration="";}
+          else if(st===1){sp.dataset.s="2";sp.style.background="#fee2e2";sp.style.color="#991b1b";sp.style.textDecoration="line-through";}
+          else{sp.dataset.s="0";sp.style.background="transparent";sp.style.color="";sp.style.textDecoration="";}
+          updWpm();
+        });
       });
-      dokBox.innerHTML=qh;
-    });
+      if(flTm) flTm.addEventListener("input",updWpm);
+    }
+    // Comprehension: story selector shows passage text + DOK checkboxes
+    var cpSt=document.getElementById("trk-story");
+    if(cpSt&&sel&&sel.station==="Comprehension"){
+      cpSt.addEventListener("change",function(){
+        var story=STORIES.find(function(s){return s.id===parseInt(cpSt.value,10);});
+        var ca=document.getElementById("trk-cp-area");
+        if(!story||!ca) return;
+        ca.style.display="";
+        var ch="<p style='font-size:.8rem;color:#334155;line-height:1.6;background:#f8faff;padding:.5rem .65rem;border-radius:6px;margin-bottom:.4rem'>"+story.passage+"</p>";
+        ch+="<div class='trk-dok-box'>";
+        story.dok.forEach(function(dq,i){
+          ch+="<label class='trk-dok-q'><input type='checkbox' id='trk-dok"+(i+1)+"'>";
+          ch+="<span class='trk-dok-badge trk-dok-l"+dq.lvl+"'>DOK "+dq.lvl+"</span><span>"+dq.q+"</span></label>";
+        });
+        ch+="</div>";
+        ca.innerHTML=ch;
+      });
+    }
     var logBtn=document.getElementById("trk-log");
     if(logBtn&&sel) logBtn.addEventListener("click",function(){
       var date=document.getElementById("trk-date").value;
       if(!date){alert("Select a date.");return;}
       var d=load(), student=d.students.find(function(s){return s.id===sel.id;});
       if(!student) return;
-      var m=STATION_META[student.station], entry={id:uid(),date:date};
+      var entry={id:uid(),date:date};
       var notesEl=document.getElementById("trk-notes");
       entry.notes=(notesEl&&notesEl.value.trim())||"";
-      if(m.scoreType==="wpm"){
-        var wpm=parseInt(document.getElementById("trk-wpm").value);
-        if(isNaN(wpm)||wpm<1||wpm>400){alert("WPM must be 1\u2013400.");return;}
-        entry.wpm=wpm;
-        entry.errors=parseInt(document.getElementById("trk-errors").value)||0;
-        entry.totalWords=parseInt(document.getElementById("trk-totalw").value)||0;
-        entry.storyId=parseInt(document.getElementById("trk-story").value);
-      } else if(m.scoreType==="mastery"){
-        var cor=parseInt(document.getElementById("trk-correct").value);
-        var tot=parseInt(document.getElementById("trk-total").value);
-        if(isNaN(cor)||cor<0){alert("Enter words correct.");return;}
-        if(isNaN(tot)||tot<1){alert("Enter total tested.");return;}
-        if(cor>tot){alert("Correct cannot exceed total.");return;}
-        entry.correct=cor; entry.total=tot;
-      } else if(m.scoreType==="dok"){
-        var cb1=document.getElementById("trk-dok1"),cb2=document.getElementById("trk-dok2");
-        var cb3=document.getElementById("trk-dok3"),cb4=document.getElementById("trk-dok4");
-        entry.dok1=!!(cb1&&cb1.checked); entry.dok2=!!(cb2&&cb2.checked);
-        entry.dok3=!!(cb3&&cb3.checked); entry.dok4=!!(cb4&&cb4.checked);
-        entry.storyId=parseInt(document.getElementById("trk-story").value);
+      if(student.station==="Sight Words"){
+        var grid=document.getElementById("trk-sw-grid"),lvlEl=document.getElementById("trk-sw-lvl");
+        if(!grid||!lvlEl){alert("Select a Dolch level first.");return;}
+        var tested=[],correct=[],incorrect=[];
+        grid.querySelectorAll(".trk-wb").forEach(function(b){
+          if(b.dataset.s!=="0"){tested.push(b.dataset.w);if(b.dataset.s==="1")correct.push(b.dataset.w);else incorrect.push(b.dataset.w);}
+        });
+        if(!tested.length){alert("Tap at least one word first.");return;}
+        entry.swLevel=lvlEl.value;entry.swTested=tested;entry.swCorrect=correct;entry.swIncorrect=incorrect;
+        entry.score=Math.round(correct.length/tested.length*100);
+      } else if(student.station==="Fluency"){
+        var stEl=document.getElementById("trk-story");
+        if(!stEl||!stEl.value){alert("Select a passage first.");return;}
+        var wg=document.getElementById("trk-fl-wgrid");
+        if(!wg){alert("Select a passage to see the word display.");return;}
+        var ws=wg.querySelectorAll(".trk-w"),gi=-1,rw=[];
+        ws.forEach(function(w,i){if(w.dataset.s==="1")gi=i;if(w.dataset.s==="2")rw.push(w.textContent.trim());});
+        if(gi<0){alert("Tap the word where the student stopped.");return;}
+        var tmEl=document.getElementById("trk-time"),tm=parseFloat(tmEl&&tmEl.value)||0;
+        if(tm<=0){alert("Enter the reading time in minutes.");return;}
+        var flStory=STORIES.find(function(s){return s.id===parseInt(stEl.value,10);});
+        entry.storyId=parseInt(stEl.value,10);entry.storyTitle=flStory?flStory.title:"";
+        entry.stoppedIdx=gi;entry.redWords=rw;entry.timeMins=tm;
+        entry.wpm=Math.round((gi+1-rw.length)/Math.max(tm,0.1));entry.score=entry.wpm;
+      } else {
+        var stElC=document.getElementById("trk-story");
+        if(!stElC||!stElC.value){alert("Select a passage first.");return;}
+        var d1=document.getElementById("trk-dok1"),d2=document.getElementById("trk-dok2");
+        var d3=document.getElementById("trk-dok3"),d4=document.getElementById("trk-dok4");
+        if(!d1){alert("Select a passage to see DOK questions.");return;}
+        var tmC=parseFloat((document.getElementById("trk-time")||{}).value)||0;
+        var cpStory=STORIES.find(function(s){return s.id===parseInt(stElC.value,10);});
+        entry.storyId=parseInt(stElC.value,10);entry.storyTitle=cpStory?cpStory.title:"";
+        entry.timeMins=tmC;entry.dok1=d1.checked;entry.dok2=d2&&d2.checked;
+        entry.dok3=d3&&d3.checked;entry.dok4=d4&&d4.checked;
+        entry.score=Math.round(((entry.dok1?1:0)+(entry.dok2?1:0)+(entry.dok3?1:0)+(entry.dok4?1:0))/4*100);
       }
+
       student.entries.push(entry); save(d); renderInto(container);
     });
     container.querySelectorAll("[data-del]").forEach(function(btn){
