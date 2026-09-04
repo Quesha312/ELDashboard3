@@ -29,7 +29,10 @@ button:active { transform: scale(0.96); }
 #print-btn { background: rgba(255,255,255,0.2); color: #fff; }
 #print-btn:hover { background: rgba(255,255,255,0.3); }
 #app { display: flex; flex: 1; overflow: hidden; height: calc(100vh - 56px); }
-#sidebar { width: 240px; min-width: 200px; background: var(--sidebar-bg); color: var(--sidebar-text); overflow-y: auto; flex-shrink: 0; padding-bottom: 2rem; }
+#sidebar { width: 240px; min-width: 200px; background: var(--sidebar-bg); color: var(--sidebar-text); overflow-y: auto; flex-shrink: 0; padding-bottom: 2rem; transition: width .2s; }
+#sidebar.sb-collapsed { width: 42px !important; min-width: 42px; overflow: hidden; }
+#sidebar.sb-collapsed > *:not(#sb-toggle) { display: none; }
+#sb-toggle { white-space: nowrap; }
 .unit-group { border-bottom: 1px solid #2a3a5e; }
 .unit-title { padding: 0.85rem 1rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: background 0.15s; }
 .unit-title:hover { background: var(--sidebar-hover); }

@@ -375,8 +375,10 @@
     h += "<div style='font-size:.83rem;color:#64748b;margin-top:.25rem'><em>" + U.reading + "</em> \u00b7 " + U.genre + " \u00b7 Strategy: " + U.strategy + "</div>";
     h += "<div style='font-size:.81rem;color:#64748b'>Grammar: " + U.gram1 + " / " + U.gram2 + "</div></div>";
     h += "<div style='display:flex;gap:.4rem;align-items:center'>";
-    h += "<select id='dur-sel' style='font-size:.82rem;padding:.3rem .6rem;border-radius:6px;border:1.5px solid #dde3f0;background:#fff;color:#1e3a8a;font-weight:600;cursor:pointer'><option value='30'>30 min</option><option value='45'>45 min</option><option value='60'>60 min</option><option value='90'>90 min</option></select>";
-    if (state.cSession >= 0) h += "<button id='conn-back' class='tab-btn' style='font-size:.76rem'>&#8592; Sessions</button>";
+    [30,45,60,90].forEach(function(d){
+      var a=d===state.cDur;
+      h+="<button data-dur='"+d+"' style='font-size:.76rem;padding:.28rem .65rem;border-radius:20px;border:1.5px solid "+(a?"#1e40af":"#cbd5e1")+";background:"+(a?"#1e40af":"#fff")+";color:"+(a?"#fff":"#475569")+";font-weight:"+(a?700:500)+";cursor:pointer'>"+d+" min</button>";
+    });
     h += "</div></div></div>";
     if (state.cSession < 0) {
       h += "<div style='padding:1rem'>";
@@ -398,6 +400,12 @@
       else {
         var isLL2 = S.type==="L&L";
         h += "<div style='padding:.75rem 1rem'>";
+        var prevIdx=state.cSession>0?state.cSession-1:-1,nextIdx=state.cSession<U.sessions.length-1?state.cSession+1:-1;
+        h+="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:.65rem'>";
+        h+="<button id='conn-prev' "+(prevIdx<0?"disabled style='font-size:.75rem;padding:.28rem .65rem;border-radius:6px;border:1px solid #e2e8f0;background:#f1f5f9;color:#94a3b8;cursor:default'":"style='font-size:.75rem;padding:.28rem .65rem;border-radius:6px;border:1px solid #dde3f0;background:#f8faff;color:#1e3a8a;cursor:pointer'")+">\u2190 S"+(S.n>1?S.n-1:"")+"</button>";
+        h+="<button id='conn-back' style='font-size:.74rem;background:none;border:none;color:#6366f1;cursor:pointer;text-decoration:underline'>\u2630 All Sessions</button>";
+        h+="<button id='conn-next' "+(nextIdx<0?"disabled style='font-size:.75rem;padding:.28rem .65rem;border-radius:6px;border:1px solid #e2e8f0;background:#f1f5f9;color:#94a3b8;cursor:default'":"style='font-size:.75rem;padding:.28rem .65rem;border-radius:6px;border:1px solid #dde3f0;background:#f8faff;color:#1e3a8a;cursor:pointer'")+">S"+(S.n<U.sessions.length?S.n+1:"")+" \u2192</button>";
+        h+="</div>";
         h += "<div style='display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem'>";
         h += "<span style='background:" + (isLL2?"#dbeafe":"#ede9fe") + ";color:" + (isLL2?"#1e40af":"#6d28d9") + ";padding:.18rem .55rem;border-radius:12px;font-size:.74rem;font-weight:700'>S" + S.n + " \u00b7 " + S.type + "</span>";
         h += "<span style='background:#f1f5f9;color:#475569;padding:.18rem .55rem;border-radius:12px;font-size:.74rem;font-weight:600'>" + S.area + "</span>";
@@ -405,15 +413,20 @@
         h += "</div>";
         h += "<p style='font-size:.9rem;font-weight:600;color:#0f172a;line-height:1.5;margin:0 0 .5rem'>" + S.act + "</p>";
         h += "<p style='font-size:.82rem;color:#64748b;margin:0 0 .8rem'><strong>Materials:</strong> " + (S.mat||"Student Book") + "</p>";
-        h += "<div style='font-size:.84rem;font-weight:700;margin-bottom:.35rem'>&#9201; Pacing <span style='font-weight:400;font-size:.78rem;color:#64748b'>(tap timer above to switch)</span></div>";
-        h += "<table style='width:100%;border-collapse:collapse;font-size:.81rem;margin-bottom:.8rem'>";
-        [30,45,60,90].forEach(function(d){
-          var sel = d===state.cDur;
-          h += "<tr style='background:" + (sel?"#eff6ff":"") + ";border:1px solid #e2e8f0'>";
-          h += "<td style='padding:.35rem .6rem;font-weight:700;color:" + (sel?"#1e40af":"#64748b") + ";white-space:nowrap;width:52px'>" + d + " min</td>";
-          h += "<td style='padding:.35rem .6rem;color:#334155'>" + (S["t"+d]||"") + "</td></tr>";
-        });
-        h += "</table>";
+        var pacing=S["t"+state.cDur]||"";
+        var steps=pacing?pacing.split("\u00b7").map(function(step){var m=step.trim().match(/^(.*)\((\d+)\)$/);return m?{act:m[1].trim(),mins:parseInt(m[2])}:{act:step.trim(),mins:0};}):[];
+        if(steps.length){
+          h+="<div style='font-size:.82rem;font-weight:700;color:#0f172a;margin-bottom:.4rem'>For a "+state.cDur+"-minute class:</div>";
+          h+="<div style='display:flex;flex-direction:column;gap:.3rem;margin-bottom:.85rem'>";
+          steps.forEach(function(step,i){
+            h+="<div style='display:flex;align-items:flex-start;gap:.5rem;background:#f8faff;border-radius:8px;padding:.45rem .7rem;border-left:3px solid "+(isLL2?"#3b82f6":"#8b5cf6")+"'>";
+            h+="<div style='flex-shrink:0;font-size:.7rem;font-weight:700;color:#94a3b8;min-width:44px;padding-top:.1rem'>Step "+(i+1)+"</div>";
+            h+="<div style='flex-shrink:0;background:"+(isLL2?"#dbeafe":"#ede9fe")+";color:"+(isLL2?"#1e40af":"#6d28d9")+";font-size:.73rem;font-weight:700;border-radius:4px;padding:.1rem .35rem;min-width:44px;text-align:center;white-space:nowrap'>"+step.mins+" min</div>";
+            h+="<div style='font-size:.84rem;font-weight:600;color:#1e293b;flex:1'>"+step.act+"</div>";
+            h+="</div>";
+          });
+          h+="</div>";
+        }
         var po = (typeof CONN_PO!=="undefined" && CONN_PO[S.n]) ? CONN_PO[S.n] : "";
         if (po) h += "<div style='background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:.7rem .9rem'><div style='font-size:.81rem;font-weight:700;color:#14532d;margin-bottom:.3rem'>&#129001; Pull-Out Notes</div><div style='font-size:.81rem;color:#166534;line-height:1.65'>" + po + "</div></div>";
         h += "</div>";
@@ -504,6 +517,9 @@
     if (csEl && csEl.dataset.csession !== undefined) {
       state.cSession = parseInt(csEl.dataset.csession, 10); render(); return;
     }
+    if (t.dataset && t.dataset.dur !== undefined) { state.cDur = parseInt(t.dataset.dur, 10); render(); return; }
+    if (t.id === "conn-prev" && state.cSession > 0) { state.cSession -= 1; render(); return; }
+    if (t.id === "conn-next") { var maxS=(CONNECT[state.cUnit]||{sessions:[]}).sessions.length-1; if(state.cSession<maxS){state.cSession+=1;render();} return; }
     if (t.id === "conn-back") { state.cSession = -1; render(); return; }
 
     if (t.id === "print-btn") { window.print(); }
