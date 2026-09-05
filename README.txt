@@ -5,7 +5,7 @@ WHAT'S IN THIS ZIP
 -------------------
 - index.html          Complete, ready-to-use page shell (built fresh — wires up every script + the CSS)
 - style.css           All dashboard styling, including the Picture Books / Savvas myView section switch
-- unit1.js .. unit5.js         5 picture-book units, 25 lessons total (Push-In + Pull-Out each fully scripted)
+- connect_u1.js .. connect_u8.js  Vista Connect 3, Units 1-8, 21 sessions each, 30/45/60/90-min pacing
 - savvas_u1.js .. savvas_u5.js  Savvas myView curriculum, Units 1-5, 6 weeks each, Below/On Level x Push-In(60min)/Pull-Out(30min)
 - app.js              Full dashboard logic: sidebar, tabs, section + level + mode toggles, localStorage, print, crash-guard
 
