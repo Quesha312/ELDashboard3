@@ -134,14 +134,12 @@
   function uid() { return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 
   function renderInto(el) {
-    var data = load();
-    var students = data.students;
-    var groups = {"Sight Words":[],"Fluency":[],"Comprehension":[]};
-    students.forEach(function(s){ if(groups[s.station]) groups[s.station].push(s); });
-    var sel = students.find(function(s){ return s.id===_sid; });
-    if (!sel && students.length) { _sid = students[0].id; sel = students[0]; }
-
-    var h = "<div class='trk-wrap'>";
+    var d=load();
+    if(!_sid){showRoster(el,d);return;}
+    var s=null;for(var i=0;i<d.students.length;i++){if(d.students[i].id===_sid){s=d.students[i];break;}}
+    if(!s){_sid=null;showRoster(el,d);return;}
+    showStudentFile(el,d,s);
+    return;
 
     // LEFT: roster
     h += "<div class='trk-roster'>";
@@ -258,6 +256,97 @@
     wireEvents(el, sel, load().students);
   }
 
+  function showRoster(el,d){
+    var sts=d.students,h="<div style='padding:1rem'>";
+    h+="<div style='background:#f8faff;border:1.5px solid #e2e8f0;border-radius:10px;padding:.75rem 1rem;margin-bottom:.9rem'><div style='font-size:.88rem;font-weight:700;color:#1e3a8a;margin-bottom:.4rem'>Add Student</div>";
+    h+="<div style='display:flex;gap:.5rem;flex-wrap:wrap;align-items:flex-end'>";
+    h+="<div><div style='font-size:.74rem;font-weight:600;color:#475569;margin-bottom:.15rem'>Name</div><input id='trk-name' type='text' placeholder='First name' style='padding:.3rem .5rem;border:1.5px solid #cbd5e1;border-radius:6px;font-size:.83rem;width:120px'></div>";
+    h+="<div><div style='font-size:.74rem;font-weight:600;color:#475569;margin-bottom:.15rem'>WIDA Reading</div><input id='trk-wr' type='number' step='0.1' min='1' max='6' placeholder='2.4' style='padding:.3rem .5rem;border:1.5px solid #cbd5e1;border-radius:6px;font-size:.83rem;width:76px'></div>";
+    h+="<div><div style='font-size:.74rem;font-weight:600;color:#475569;margin-bottom:.15rem'>WIDA Speaking</div><input id='trk-ws' type='number' step='0.1' min='1' max='6' placeholder='3.1' style='padding:.3rem .5rem;border:1.5px solid #cbd5e1;border-radius:6px;font-size:.83rem;width:76px'></div>";
+    h+="<button id='trk-add-btn' style='padding:.35rem .9rem;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:.83rem;font-weight:600;cursor:pointer'>+ Add</button></div></div>";
+    [['Sight Words','\uD83D\uDD35','#eff6ff','#bfdbfe','#1e40af'],['Fluency','\uD83D\uDFE0','#fff7ed','#fed7aa','#c2410c'],['Comprehension','\uD83D\uDFE2','#f0fdf4','#bbf7d0','#166534']].forEach(function(sta){
+      var grp=sts.filter(function(s){return s.station===sta[0];});
+      h+="<div style='background:"+sta[2]+";border:1.5px solid "+sta[3]+";border-radius:10px;padding:.75rem 1rem;margin-bottom:.6rem'>";
+      h+="<div style='font-size:.85rem;font-weight:700;color:"+sta[4]+";margin-bottom:.4rem'>"+sta[1]+" "+sta[0]+" <span style='font-weight:400;font-size:.77rem;color:#94a3b8'>("+grp.length+")</span></div>";
+      if(!grp.length){h+="<div style='font-size:.77rem;color:#94a3b8;font-style:italic'>No students yet</div>";}
+      grp.forEach(function(s){
+        var le=s.entries&&s.entries.length?s.entries[s.entries.length-1]:null,sc='No sessions';
+        if(le){if(s.station==='Sight Words')sc=(le.score||0)+'% mastery';else if(s.station==='Fluency')sc=(le.wpm||0)+' WPM';else{var dp=(le.d1q1?1:0)+(le.d1q2?1:0)+(le.d2q1?2:0)+(le.d2q2?2:0)+(le.d3q1?3:0)+(le.d3q2?3:0)+(le.d4q1?4:0)+(le.d4q2?4:0);sc=dp+'/20 pts';}}
+        h+="<div class='trk-scard' data-sid='"+s.id+"' style='display:flex;justify-content:space-between;align-items:center;padding:.38rem .6rem;background:rgba(255,255,255,.75);border-radius:7px;margin:.2rem 0;cursor:pointer;border:1px solid "+sta[3]+"'>";
+        h+="<span style='font-size:.86rem;font-weight:600;color:#0f172a'>"+s.name+"</span><span style='font-size:.76rem;color:"+sta[4]+"'>"+sc+" \u203a</span></div>";
+      });
+      h+="</div>";
+    });
+    if(!sts.length){h+="<div style='text-align:center;padding:2rem;color:#94a3b8'>Add your first student above.</div>";}
+    h+="<button id='trk-passages-btn' style='margin-top:.6rem;font-size:.78rem;padding:.28rem .7rem;border:1.5px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;color:#475569'>\uD83D\uDCDA View / Print Passages</button></div>";
+    el.innerHTML=h;
+    var ab=document.getElementById('trk-add-btn');
+    if(ab)ab.addEventListener('click',function(){
+      var nm=(document.getElementById('trk-name')||{}).value.trim(),wr=parseFloat((document.getElementById('trk-wr')||{}).value),ws=parseFloat((document.getElementById('trk-ws')||{}).value);
+      if(!nm){alert('Enter a student name.');return;}
+      if(isNaN(wr)||wr<1||wr>6){alert('WIDA Reading must be 1\u20136.');return;}
+      if(isNaN(ws)||ws<1||ws>6){alert('WIDA Speaking must be 1\u20136.');return;}
+      var d2=load(),ns={id:uid(),name:nm,wr:wr,ws:ws,station:assignStation(wr,ws),entries:[]};
+      d2.students.push(ns);save(d2);_sid=ns.id;renderInto(el);
+    });
+    el.addEventListener('click',function(e){
+      var c=e.target.closest?e.target.closest('.trk-scard'):null;
+      if(c&&c.dataset.sid){_sid=c.dataset.sid;renderInto(el);}
+      if(e.target.id==='trk-passages-btn'){renderPassages(el);}
+    });
+  }
+
+  function showStudentFile(el,d,sel){
+    var m2=STATION_META[sel.station],avg2=peerAvg(d.students,sel.station,sel.id);
+    var h="<div style='padding:.75rem 1rem'>";
+    h+="<div style='display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem'>";
+    h+="<button id='trk-back' style='font-size:.77rem;padding:.27rem .6rem;border-radius:6px;border:1px solid #e2e8f0;background:#f8faff;color:#1e3a8a;cursor:pointer'>\u2190 All Students</button>";
+    h+="<h2 style='margin:0;font-size:.98rem;color:#0f172a'>"+sel.name+"</h2>";
+    h+="<span class='trk-sbadge trk-"+m2.cls+"'>"+m2.icon+" "+sel.station+"</span>";
+    h+="<span class='trk-chip'>WIDA R: "+sel.wr+"</span>";
+    if(sel.ws)h+="<span class='trk-chip'>WIDA S: "+sel.ws+"</span>";
+    h+="<button class='trk-btn-del' data-del='"+sel.id+"' style='margin-left:auto;font-size:.77rem'>Remove</button></div>";
+    h+="<div class='trk-log-form'><div style='font-size:.85rem;font-weight:700;color:#0f172a;margin-bottom:.35rem'>Log Session</div><div class='trk-frow'><label>Date<input id='trk-date' type='date' class='trk-inp-sm' value='"+new Date().toISOString().slice(0,10)+"'></label>";
+    if(sel.station==='Sight Words'){
+      h+="<label>Dolch Level<select id='trk-sw-lvl' class='trk-sel'><option value='pre'>Pre-Primer (40)</option><option value='primer'>Primer (52)</option><option value='g1'>1st Grade (41)</option><option value='g2'>2nd Grade (46)</option><option value='g3'>3rd Grade (41)</option></select></label></div>";
+      h+="<div id='trk-sw-grid' style='padding:.35rem 0;min-height:28px'></div><div id='trk-sw-score' style='font-size:.78rem;color:#1d4ed8;padding:.2rem 0;font-weight:600'>Select a level to load words</div>";
+    }else if(sel.station==='Fluency'){
+      h+="<label>Passage<select id='trk-story' class='trk-sel'><option value=''>\u2014 Select \u2014</option>";
+      STORIES.forEach(function(s){h+="<option value='"+s.id+"'>Story "+s.id+": "+s.title+"</option>";});
+      h+="</select></label><label>Time (min)<input id='trk-time' type='number' step='0.5' min='0.5' max='10' class='trk-inp-sm' placeholder='1.5'></label></div><div id='trk-fl-words' style='display:none;margin:.4rem 0'></div>";
+    }else{
+      h+="<label>Passage<select id='trk-story' class='trk-sel'><option value=''>\u2014 Select \u2014</option>";
+      STORIES.forEach(function(s){h+="<option value='"+s.id+"'>Story "+s.id+": "+s.title+"</option>";});
+      h+="</select></label><label>Read time (min)<input id='trk-time' type='number' step='0.5' min='0.5' max='20' class='trk-inp-sm' placeholder='3.5'></label></div><div id='trk-cp-area' style='display:none;margin:.4rem 0'></div>";
+    }
+    h+="<div class='trk-frow'><label>Notes<input id='trk-notes' class='trk-inp-sm' placeholder='Optional'></label><button id='trk-log' class='trk-btn-pri' data-sid='"+sel.id+"'>Log Session</button></div></div>";
+    var sl=m2.scoreType==='wpm'?'WPM':m2.scoreType==='mastery'?'Mastery %':'DOK %';
+    h+="<div class='trk-chart-box'><canvas id='trk-canvas' width='540' height='200'></canvas><div class='trk-legend'><span class='trk-leg-line'></span> "+sl+" <span class='trk-leg-goal'></span> Goal ("+m2.goalLabel+")";
+    if(avg2!==null)h+=" <span class='trk-leg-avg'></span> Peer Avg ("+avg2+(m2.scoreType==='wpm'?' WPM':'%')+")";
+    h+="</div></div><div class='trk-hist-box'><div class='trk-hist-title'>Score History</div>";
+    if(!sel.entries||!sel.entries.length){h+="<p class='trk-empty-s'>No sessions yet.</p>";}
+    else{
+      var sorted=sel.entries.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+      h+="<table class='trk-tbl'><thead><tr><th>Date</th><th>Detail</th><th>Score</th>";
+      if(sel.station==='Comprehension')h+="<th>Flag</th>";
+      h+="<th>Notes</th><th></th></tr></thead><tbody>";
+      sorted.forEach(function(e){
+        var di='',de='\u2014';
+        if(sel.station==='Sight Words'){de='Dolch '+(e.swLevel||'')+': '+(e.swCorrect||[]).length+'/'+(e.swTested||[]).length+' words';di='<strong>'+(e.score||0)+'%</strong>';}
+        else if(sel.station==='Fluency'){de=(e.storyTitle||'\u2014')+' \u00b7 '+(e.stoppedIdx!==undefined?e.stoppedIdx+1:0)+' words \u00b7 '+(e.redWords||[]).length+' errors';di='<strong>'+(e.wpm||0)+'</strong> WPM';}
+        else{var dp2=(e.d1q1?1:0)+(e.d1q2?1:0)+(e.d2q1?2:0)+(e.d2q2?2:0)+(e.d3q1?3:0)+(e.d3q2?3:0)+(e.d4q1?4:0)+(e.d4q2?4:0);de=e.storyTitle||'\u2014';di='<strong>'+dp2+'/20 pts</strong> ('+(e.score||Math.round(dp2/20*100))+'%)';};
+        h+="<tr><td>"+e.date+"</td><td>"+de+"</td><td>"+di+"</td>";
+        if(sel.station==='Comprehension'){var f=dokFlag(e);h+="<td><span class='trk-flag "+f.cls+"' title='"+f.tip+"'>"+f.label+"</span></td>";}
+        h+="<td style='font-size:.8rem;color:#64748b'>"+(e.notes||'')+"</td><td><button class='trk-del-e' data-sid='"+sel.id+"' data-eid='"+(e.id||'')+"'>&times;</button></td></tr>";
+      });
+      h+="</tbody></table>";
+    }
+    h+="</div></div>";
+    el.innerHTML=h;
+    if(sel.entries&&sel.entries.length){drawChart(sel,m2,avg2);}
+    wireEvents(el,sel,d.students);
+  }
+
   function drawChart(student, meta, avgScore) {
     var canvas=document.getElementById("trk-canvas");
     if (!canvas) return;
@@ -303,6 +392,8 @@
   }
 
   function wireEvents(container, sel, students) {
+    var backBtn=document.getElementById('trk-back');
+    if(backBtn)backBtn.addEventListener('click',function(){_sid=null;renderInto(container);});
     var addBtn=document.getElementById("trk-add-btn"), form=document.getElementById("trk-form");
     if(addBtn&&form) addBtn.addEventListener("click",function(){ form.style.display=form.style.display==="none"?"block":"none"; });
     var cancel=document.getElementById("trk-cancel");
