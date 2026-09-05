@@ -528,5 +528,22 @@
   // — init ——————————————————————————————————————————————————
   loadState();
   render();
+  // Teacher name: load from localStorage, click h1 to edit + save
+  (function(){
+    var KEY_TN='ell_teacher_name';
+    var titleEl=document.getElementById('dash-title');
+    if(!titleEl)return;
+    var saved=localStorage.getItem(KEY_TN);
+    if(saved)titleEl.textContent=saved;
+    titleEl.addEventListener('click',function(){
+      var current=titleEl.textContent||'ELL Teacher Dashboard';
+      var name=prompt('Enter your name for this dashboard:\n(e.g. \'Ms. Rivera\' or \'Mr. Thompson\')',current==='ELL Teacher Dashboard'?'':current);
+      if(name!==null&&name.trim()){
+        var n=name.trim();
+        localStorage.setItem(KEY_TN,n);
+        titleEl.textContent=n;
+      }
+    });
+  })();
 
 }());
