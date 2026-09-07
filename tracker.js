@@ -256,6 +256,9 @@
     wireEvents(el, sel, load().students);
   }
 
+  function _postToSheets(url,data){if(!url)return;try{fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});}catch(e){}}
+  function showTrkSettings(el){var SK='ell_sheets_url',saved=localStorage.getItem(SK)||'';var h="<div style='padding:1rem'><div style='display:flex;align-items:center;gap:.5rem;margin-bottom:.8rem'><button id='trk-sb' style='font-size:.77rem;padding:.27rem .6rem;border-radius:6px;border:1px solid #e2e8f0;background:#f8faff;color:#1e3a8a;cursor:pointer'>&#8592; Back</button><strong style='font-size:.9rem'>&#9881;&#65039; Sheets Sync</strong></div><p style='font-size:.81rem;color:#475569;margin:.3rem 0 .6rem'>Paste your Apps Script URL to auto-log sessions to your Google Sheet.</p><input id='trk-su' type='url' placeholder='https://script.google.com/macros/s/...' style='width:100%;padding:.35rem .5rem;border:1.5px solid #cbd5e1;border-radius:6px;font-size:.8rem;box-sizing:border-box;margin-bottom:.45rem'><div style='display:flex;gap:.5rem;margin-bottom:.5rem'><button id='trk-ss' style='padding:.3rem .75rem;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:.8rem;cursor:pointer'>Save</button><button id='trk-st' style='padding:.3rem .75rem;background:#166534;color:#fff;border:none;border-radius:6px;font-size:.8rem;cursor:pointer'>Test</button><button id='trk-sc' style='padding:.3rem .75rem;background:#e2e8f0;color:#334155;border:none;border-radius:6px;font-size:.8rem;cursor:pointer'>Clear</button></div><div id='trk-sm' style='font-size:.77rem;min-height:1.2rem;color:#475569'></div></div>";el.innerHTML=h;var su=document.getElementById('trk-su');if(su&&saved)su.value=saved;var sm=document.getElementById('trk-sm');document.getElementById('trk-sb').addEventListener('click',function(){_sid=null;renderInto(el);});document.getElementById('trk-ss').addEventListener('click',function(){var v=su.value.trim();if(v){localStorage.setItem(SK,v);sm.textContent='\u2713 Saved';}else{localStorage.removeItem(SK);sm.textContent='Cleared';}});document.getElementById('trk-st').addEventListener('click',function(){var v=su.value.trim()||localStorage.getItem(SK);if(!v){sm.textContent='\u26a0 Save a URL first';return;}sm.textContent='Sending\u2026';_postToSheets(v,{teacher:'Test',date:new Date().toISOString().slice(0,10),student:'Test Student',station:'Fluency',score:90,story:'',notes:'Connection test'});setTimeout(function(){sm.textContent='\u2713 Sent \u2014 check your sheet';},1500);});document.getElementById('trk-sc').addEventListener('click',function(){localStorage.removeItem(SK);su.value='';sm.textContent='Cleared';});}
+
   function showRoster(el,d){
     var sts=d.students,h="<div style='padding:1rem'>";
     h+="<div style='background:#f8faff;border:1.5px solid #e2e8f0;border-radius:10px;padding:.75rem 1rem;margin-bottom:.9rem'><div style='font-size:.88rem;font-weight:700;color:#1e3a8a;margin-bottom:.4rem'>Add Student</div>";
@@ -278,7 +281,7 @@
       h+="</div>";
     });
     if(!sts.length){h+="<div style='text-align:center;padding:2rem;color:#94a3b8'>Add your first student above.</div>";}
-    h+="<button id='trk-passages-btn' style='margin-top:.6rem;font-size:.78rem;padding:.28rem .7rem;border:1.5px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;color:#475569'>\uD83D\uDCDA View / Print Passages</button></div>";
+    h+="<button id='trk-passages-btn' style='margin-top:.6rem;font-size:.78rem;padding:.28rem .7rem;border:1.5px solid #e2e8f0;border-radius:6px;background:#fff;cursor:pointer;color:#475569'>\uD83D\uDCDA View / Print Passages</button> <button id='trk-sheets-btn' style='margin-top:.6rem;font-size:.78rem;padding:.28rem .7rem;border:1.5px solid #ddd6fe;border-radius:6px;background:#faf5ff;cursor:pointer;color:#7c3aed'>&#9881;&#65039; Sheets</button></div>";
     el.innerHTML=h;
     var ab=document.getElementById('trk-add-btn');
     if(ab)ab.addEventListener('click',function(){
@@ -293,6 +296,7 @@
       var c=e.target.closest?e.target.closest('.trk-scard'):null;
       if(c&&c.dataset.sid){_sid=c.dataset.sid;renderInto(el);}
       if(e.target.id==='trk-passages-btn'){renderPassages(el);}
+      if(e.target.id==='trk-sheets-btn'){showTrkSettings(el);}
     });
   }
 
@@ -473,8 +477,8 @@
           var sp=e.target.classList.contains("trk-w")?e.target:null;
           if(!sp) return;
           var st=parseInt(sp.dataset.s,10);
-          if(st===0){var pv=wg.querySelector(".trk-w[data-s='1']");if(pv){pv.dataset.s="0";pv.style.background="transparent";pv.style.color="";pv.style.textDecoration="";}sp.dataset.s="1";sp.style.background="#dcfce7";sp.style.color="#14532d";sp.style.textDecoration="";}
-          else if(st===1){sp.dataset.s="2";sp.style.background="#fee2e2";sp.style.color="#991b1b";sp.style.textDecoration="line-through";}
+          if(st===0){sp.dataset.s="2";sp.style.background="#fee2e2";sp.style.color="#991b1b";sp.style.textDecoration="line-through";}
+          else if(st===2){var pv=wg.querySelector(".trk-w[data-s='1']");if(pv){pv.dataset.s="0";pv.style.background="transparent";pv.style.color="";pv.style.textDecoration="";}sp.dataset.s="1";sp.style.background="#dcfce7";sp.style.color="#14532d";sp.style.textDecoration="";}
           else{sp.dataset.s="0";sp.style.background="transparent";sp.style.color="";sp.style.textDecoration="";}
           updWpm();
         });
@@ -576,6 +580,8 @@
         entry.rawPts=rawPts;entry.score=Math.round(rawPts/20*100);
       }
 
+      var _sk=localStorage.getItem('ell_sheets_url'),_tn=localStorage.getItem('ell_teacher_name')||'EL Teacher';
+      if(_sk)_postToSheets(_sk,{teacher:_tn,date:entry.date,student:sel.name,station:sel.station,score:entry.score||0,story:entry.storyTitle||'',notes:entry.notes||''});
       student.entries.push(entry); save(d); renderInto(container);
     });
     container.querySelectorAll("[data-del]").forEach(function(btn){
