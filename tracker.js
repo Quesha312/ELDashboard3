@@ -314,10 +314,12 @@
       h+="<label>Passage<select id='trk-story' class='trk-sel'><option value=''>\u2014 Select \u2014</option>";
       STORIES.forEach(function(s){h+="<option value='"+s.id+"'>Story "+s.id+": "+s.title+"</option>";});
       h+="</select></label><label>Time (min)<input id='trk-time' type='number' step='0.5' min='0.5' max='10' class='trk-inp-sm' placeholder='1.5'></label></div><div id='trk-fl-words' style='display:none;margin:.4rem 0'></div>";
+    h+="<div style='display:flex;align-items:center;gap:.6rem;margin:.4rem 0;flex-wrap:wrap'><span id='trk-fl-time' style='font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;color:#1e40af;min-width:2.8rem'>1:00</span><button id='trk-fl-start' style='padding:.28rem .75rem;background:#1e40af;color:#fff;border:none;border-radius:6px;font-size:.82rem;cursor:pointer'>&#9654; Start</button><button id='trk-fl-reset' style='padding:.28rem .7rem;background:#e2e8f0;color:#334155;border:none;border-radius:6px;font-size:.82rem;cursor:pointer'>&#8635; Reset</button><span id='trk-fl-status' style='font-size:.77rem;color:#94a3b8'></span></div>";
     }else{
       h+="<label>Passage<select id='trk-story' class='trk-sel'><option value=''>\u2014 Select \u2014</option>";
       STORIES.forEach(function(s){h+="<option value='"+s.id+"'>Story "+s.id+": "+s.title+"</option>";});
       h+="</select></label><label>Read time (min)<input id='trk-time' type='number' step='0.5' min='0.5' max='20' class='trk-inp-sm' placeholder='3.5'></label></div><div id='trk-cp-area' style='display:none;margin:.4rem 0'></div>";
+    h+="<div style='display:flex;align-items:center;gap:.6rem;margin:.4rem 0;flex-wrap:wrap'><span id='trk-cp-time' style='font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums;color:#166534;min-width:2.8rem'>0:00</span><button id='trk-cp-start' style='padding:.28rem .75rem;background:#166534;color:#fff;border:none;border-radius:6px;font-size:.82rem;cursor:pointer'>&#9654; Start</button><button id='trk-cp-reset' style='padding:.28rem .7rem;background:#e2e8f0;color:#334155;border:none;border-radius:6px;font-size:.82rem;cursor:pointer'>&#8635; Reset</button><span id='trk-cp-status' style='font-size:.77rem;color:#94a3b8'>Tap Start when student begins reading</span></div>";
     }
     h+="<div class='trk-frow'><label>Notes<input id='trk-notes' class='trk-inp-sm' placeholder='Optional'></label><button id='trk-log' class='trk-btn-pri' data-sid='"+sel.id+"'>Log Session</button></div></div>";
     var sl=m2.scoreType==='wpm'?'WPM':m2.scoreType==='mastery'?'Mastery %':'DOK %';
@@ -461,7 +463,7 @@
         if(!story||!wa) return;
         wa.style.display="";
         var wrds=story.passage.split(" ");
-        var wh="<div style='font-size:.77rem;color:#64748b;margin-bottom:.25rem'>Click: 1st=\uD83D\uDFE2 stop (1 only) \u00b7 2nd=\uD83D\uDD34 wrong \u00b7 3rd=clear</div>";
+        var wh="<div style='font-size:.77rem;color:#64748b;margin-bottom:.25rem'>Tap once \u00b7 \uD83D\uDD34 wrong \u00a0 Tap same word again \u00b7 \uD83D\uDFE2 stop \u00a0 Tap 3rd \u00b7 clear</div>";
         wh+="<div id='trk-fl-wgrid' style='line-height:2.1;cursor:pointer'>";
         wrds.forEach(function(w,i){wh+="<span class='trk-w' data-idx='"+i+"' data-s='0' style='padding:.1rem .25rem;border-radius:3px;margin:.05rem;display:inline-block'>"+w+"</span> ";});
         wh+="</div><div id='trk-fl-wpm' style='font-size:.78rem;color:#1d4ed8;padding:.3rem 0;font-weight:600'>Tap the word where the student stopped</div>";
@@ -478,6 +480,17 @@
         });
       });
       if(flTm) flTm.addEventListener("input",updWpm);
+      // Fluency 1-min countdown timer
+      (function(){
+        var tmEl=document.getElementById("trk-fl-time"),stBtn=document.getElementById("trk-fl-start"),rsBtn=document.getElementById("trk-fl-reset"),stEl=document.getElementById("trk-fl-status");
+        if(!tmEl||!stBtn)return;
+        var _t=null,_s=60;
+        function fmt(s){return Math.floor(s/60)+":"+(s%60<10?"0":"")+s%60;}
+        function beep(){try{var c=new(window.AudioContext||window.webkitAudioContext)();var o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;o.type="sine";g.gain.setValueAtTime(0.6,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+0.9);o.start(c.currentTime);o.stop(c.currentTime+0.9);}catch(e){}}
+        function tick(){_s--;tmEl.textContent=fmt(_s);if(_s<=0){clearInterval(_t);_t=null;stBtn.textContent="\u25BA Start";tmEl.style.color="#dc2626";if(stEl)stEl.textContent="\u23F1 Time!";beep();}}
+        stBtn.addEventListener("click",function(){if(_t){clearInterval(_t);_t=null;stBtn.textContent="\u25BA Start";}else{if(_s<=0){_s=60;tmEl.textContent="1:00";tmEl.style.color="#1e40af";if(stEl)stEl.textContent="";}stBtn.textContent="\u23F8 Pause";_t=setInterval(tick,1000);}});
+        if(rsBtn)rsBtn.addEventListener("click",function(){clearInterval(_t);_t=null;_s=60;tmEl.textContent="1:00";tmEl.style.color="#1e40af";stBtn.textContent="\u25BA Start";if(stEl)stEl.textContent="";});
+      })();
     }
     // Comprehension: story selector shows passage text + DOK checkboxes
     var cpSt=document.getElementById("trk-story");
@@ -498,6 +511,16 @@
         ch+="</div>";
         ca.innerHTML=ch;
       });
+      // Comprehension count-up stopwatch
+      (function(){
+        var tmEl=document.getElementById("trk-cp-time"),stBtn=document.getElementById("trk-cp-start"),rsBtn=document.getElementById("trk-cp-reset"),stEl=document.getElementById("trk-cp-status"),tInp=document.getElementById("trk-time");
+        if(!tmEl||!stBtn)return;
+        var _t=null,_s=0;
+        function fmt(s){return Math.floor(s/60)+":"+(s%60<10?"0":"")+s%60;}
+        function tick(){_s++;tmEl.textContent=fmt(_s);}
+        stBtn.addEventListener("click",function(){if(_t){clearInterval(_t);_t=null;stBtn.textContent="\u25BA Start";if(stEl)stEl.textContent="Stopped \u2014 time filled";if(tInp)tInp.value=(_s/60).toFixed(2);}else{stBtn.textContent="\u23F9 Stop";if(stEl)stEl.textContent="Running...";_t=setInterval(tick,1000);}});
+        if(rsBtn)rsBtn.addEventListener("click",function(){clearInterval(_t);_t=null;_s=0;tmEl.textContent="0:00";stBtn.textContent="\u25BA Start";if(stEl)stEl.textContent="Tap Start when student begins reading";if(tInp)tInp.value="";});
+      })();
     }
     var logBtn=document.getElementById("trk-log");
     if(logBtn&&sel) logBtn.addEventListener("click",function(){
